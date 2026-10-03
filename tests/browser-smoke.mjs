@@ -1,5 +1,5 @@
 /**
- * Real Chromium WebGL/MediaRecorder smoke test on GitHub Actions.
+ * Real Chromium photographic flagship WebCodecs smoke test on GitHub Actions.
  * Requires Google Chrome/Chromium on PATH and puppeteer-core installed by CI.
  */
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import puppeteer from 'puppeteer-core';
 import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json'};
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json','.jpg':'image/jpeg'};
 const server=http.createServer((req,res)=>{
   let pathname;
   try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname)}catch(_){res.writeHead(400);res.end();return}
@@ -43,14 +43,15 @@ try{
     width:document.querySelector('#stage')?.width,
     height:document.querySelector('#stage')?.height
   }));
-  assert.ok(initial.width>=500&&initial.height>=250,'WebGL canvas has unexpected dimensions');
+  assert.ok(initial.width>=500&&initial.height>=250,'Canvas preview has unexpected dimensions');
   assert.match(initial.title,/Happy Birthday/);
+  assert.match(initial.scene,/MIDNIGHT GALA/);
   fs.mkdirSync(path.join(root,'test-output'),{recursive:true});
-  await page.screenshot({path:path.join(root,'test-output','birthday-v2-desktop.png'),fullPage:true});
+  await page.screenshot({path:path.join(root,'test-output','midnight-gala-preview.png'),fullPage:true});
   await page.click('#generate');
-  await page.screenshot({path:path.join(root,'test-output','birthday-v2-cinematic-second-scene.png'),fullPage:true});
+  await page.screenshot({path:path.join(root,'test-output','midnight-gala-second-mood.png'),fullPage:true});
   const second=await page.evaluate(()=>document.querySelector('#scene-caption')?.textContent);
-  assert.notEqual(initial.scene,second,'Generate must change the scene family on adjacent clicks');
+  assert.notEqual(initial.scene,second,'Generate must change the lighting mood on adjacent clicks');
   await page.evaluate(()=>{
     window.__capturedVideo=null;
     const old=URL.createObjectURL;

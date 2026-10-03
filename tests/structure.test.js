@@ -1,50 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-const read=x=>readFileSync(new URL(x,import.meta.url),'utf8');
-test('homepage has only two user-editable fields and generation/download actions',()=>{
+import {readFileSync,existsSync} from 'node:fs';
+const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
+test('exactly two input fields',()=>{
  const html=read('../index.html');
- assert.match(html,/id="song-title"/);
- assert.match(html,/id="artist-name"/);
- assert.match(html,/id="generate"/);
- assert.match(html,/id="download"/);
- assert.match(html,/id="stage"/);
- assert.doesNotMatch(html,/id="scene-select"|id="font-choice"|id="camera-motion"/);
+ assert.equal((html.match(/<input\b/g)||[]).length,2);
+ for(const id of ['song-title','artist-name','generate','download','stage'])assert.ok(html.includes('id="'+id+'"'));
 });
-test('3D text is scene-mounted, not HTML text on top of the canvas',()=>{
- const src=read('../src/type.js');
- assert.match(src,/new TextGeometry\(/);
- assert.match(src,/new THREE\.CanvasTexture\(/);
- assert.match(src,/artistBadge\(group/);
- assert.match(src,/splitTitle\(design\.title\)/);
+test('licensed local photo and no legacy procedural scene engine',()=>{
+ const art=JSON.parse(read('../assets/ART_CREDIT.json'));
+ assert.equal(art.photographer,'Rakesh Sitnoor');
+ assert.match(art.licenseUrl,/unsplash\.com\/license/);
+ assert.ok(existsSync(new URL('../assets/midnight-gala.jpg',import.meta.url)));
+ const s=read('../src/scene.js');
+ assert.match(s,/\.\/assets\/midnight-gala\.jpg/);
+ assert.doesNotMatch(s,/THREE|WebGLRenderer|GLTFLoader/);
+ assert.match(s,/noZoom=true/);
+ assert.doesNotMatch(s,/Math\.random\(|Date\.now\(/);
 });
-test('recording uses exact frame timestamps and refuses realtime dropped-frame fallbacks',()=>{
- const src=read('../src/export.js');
- assert.match(src,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
- assert.match(src,/loopFramePhase\(i,total\)/);
- assert.match(src,/frameTimestampUs\(i,profile\.fps\)/);
- assert.doesNotMatch(src,/\.captureStream\(/);
- assert.doesNotMatch(src,/new MediaRecorder\(/);
-});
-test('all six 3D scenes share the cinematic lighting and atmosphere pipeline',()=>{
- const src=read('../src/scene.js');
- for(const key of ['makeBackdrop','makeStage','makeCake','makeBalloons','makeGifts','makeSceneDecor','createLettering','createAtmosphere','cameraPose','lightingPalette'])assert.ok(src.includes(key),key);
- const atmosphere=read('../src/atmosphere.js');
- assert.match(atmosphere,/randomGenerator\(/);
- assert.match(atmosphere,/Math\.sin\(/);
- assert.doesNotMatch(atmosphere,/Date\.now\(|performance\.now\(|Math\.random\(/);
-});
-test('V2.2 bakes bloom into the canvas and retains exact-seam exporter',()=>{
- const scene=read('../src/scene.js');
- const objects=read('../src/objects.js');
- const exportCode=read('../src/export.js');
- assert.match(scene,/this\.renderer\.render\(this\.scene,this\.camera\)/);
- assert.match(scene,/this\.renderer\.shadowMap\.autoUpdate=false/);
- assert.match(scene,/this\.renderer\.shadowMap\.needsUpdate=true/);
- assert.doesNotMatch(scene,/EffectComposer|ShaderPass|UnrealBloomPass/);
- assert.match(objects,/function drippingIcing\(/);
- assert.match(objects,/function flameHaloTexture\(/);
- assert.match(objects,/function makeBackdrop\(/);
- assert.match(objects,/Float32BufferAttribute\(colors,3\)/);
- assert.match(exportCode,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
+test('video exporter requires exact seam and rejects realtime recording',()=>{
+ const s=read('../src/export.js');
+ assert.match(s,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
+ assert.doesNotMatch(s,/captureStream|new MediaRecorder/);
 });
