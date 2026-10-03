@@ -14,6 +14,7 @@ Only two inputs (song title and artist), **Generate**, autoplay 3D preview, **Do
 - [x] Browser-local history keeping 3,000 structural fingerprints; seed alone does not count as difference.
 - [x] Frame-by-frame, timestamped WebCodecs export with a byte-identical first/last compressed keyframe; progress, cancellation and cleanup. No unreliable realtime fallback.
 - [x] Pure Node.js tests and CI workflow.
+- [x] V2.1 scene-matched cinematic light rig, fixed-camera compositions, layered curtain/bokeh atmosphere, improved materials and foil-faced 3D lettering. Scene animations stay periodic.
 
 ## Release blockers for a truly cinematic / large-scale product
 
