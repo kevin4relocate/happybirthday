@@ -1,0 +1,37 @@
+{
+  "name": "Strawberry Chocolate Cake — 1K scan",
+  "author": "Kuutti Siitonen",
+  "license": "CC0 1.0 Public Domain",
+  "source": "https://polyhaven.com/a/strawberry_chocolate_cake",
+  "upstreamFiles": "https://api.polyhaven.com/files/strawberry_chocolate_cake",
+  "model": "assets/models/strawberry-chocolate-cake-1k.glb",
+  "bytes": 3330548,
+  "sha256": "46a45d110f0f5591d39a150a4084e14040b64c526f05ebc38d63084fdd769903",
+  "sourceFiles": [
+    {
+      "filename": "strawberry_chocolate_cake_1k.gltf",
+      "bytes": 2933,
+      "sha256": "cae0a3cf0c83d04606d04badfcf06f6f5408df456e4d0c4e13d6f0ba52b085c2"
+    },
+    {
+      "filename": "textures/strawberry_chocolate_cake_arm_1k.jpg",
+      "bytes": 704974,
+      "sha256": "c8d95e01faba1bb671cf6c1c2d181976464894e8528a357fbd076b9bbafec1e3"
+    },
+    {
+      "filename": "strawberry_chocolate_cake.bin",
+      "bytes": 661780,
+      "sha256": "c7245b0f1aaefc170631d7fd2c4a32321334df0ae72a0adddf55a2b008776d61"
+    },
+    {
+      "filename": "textures/strawberry_chocolate_cake_diff_1k.jpg",
+      "bytes": 882631,
+      "sha256": "6c0670e81b69de69a388eb215689f794b5f020d3b687861363fb492c110e7c78"
+    },
+    {
+      "filename": "textures/strawberry_chocolate_cake_nor_gl_1k.jpg",
+      "bytes": 1079301,
+      "sha256": "867967ef00a2ed9e60186c9b87d6e8e3001724441aae337e7054b36ba771e01d"
+    }
+  ]
+}
