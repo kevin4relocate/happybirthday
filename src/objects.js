@@ -372,7 +372,7 @@ export function makeSceneDecor(root,design,theme){
  return t=>updates.forEach(fn=>fn(t));
 }
 export function makeStage(root,theme,design){
- const main=ceramic(new THREE.Color(theme.floor).multiplyScalar(.43),.82),m=metal(theme.metal,.28);
+ const main=ceramic(new THREE.Color(theme.back).multiplyScalar(.54),.88),m=metal(theme.metal,.28);
  main.metalness=.12;main.clearcoat=.12;
  const floor=mesh(new THREE.PlaneGeometry(100,100),main,false);floor.rotation.x=-PI/2;floor.position.y=-1.96;floor.receiveShadow=true;root.add(floor);
  const ring=cylinder(3.65,3.9,.18,m,100);ring.position.y=-1.79;root.add(ring);
@@ -401,7 +401,7 @@ export function makeBackdrop(root,theme,design){
  ];
  const left=-14,right=14,segments=22;
  const positions=[],colors=[],uvs=[],indices=[];
- const floorColor=new THREE.Color(theme.floor).multiplyScalar(1.08);
+ const floorColor=new THREE.Color(theme.back).multiplyScalar(.60);
  const upperColor=new THREE.Color(theme.back).multiplyScalar(.72);
  for(let row=0;row<rows.length;row++){
   const sample=rows[row];
