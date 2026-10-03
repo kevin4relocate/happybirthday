@@ -16,10 +16,11 @@ Only two inputs (song title and artist), **Generate**, autoplay 3D preview, **Do
 - [x] Pure Node.js tests and CI workflow.
 - [x] V2.1 scene-matched cinematic light rig, fixed-camera compositions, layered curtain/bokeh atmosphere, improved materials and foil-faced 3D lettering.
 - [x] V2.2 curved studio cyclorama, sculpted piped/dripping icing, candle halos, seeded candle and background light-halation sprites baked into encoded canvas, with cached static studio shadow maps. Scene animations stay periodic.
+- [x] V3 pilot: licensed PBR photo-scan integrated into the first scene, with local asset provenance and procedural fallback.
 
 ## Release blockers for a truly cinematic / large-scale product
 
-- [ ] Hand-authored premium Blender/GLB scene library and asset licensing checks.
+- [ ] Expand beyond the one CC0 scanned pilot into a consistent art-directed Blender/GLB birthday asset library, including licensing and visual QA for every model.
 - [ ] Browser screenshots and visual QA across Chrome, Edge and Safari on representative GPUs.
 - [ ] Actual 1080p recording validation on real user hardware; CI covers 10-second, 30-fps reduced-resolution file decoding and first/last pixel equality.
 - [ ] Content visual similarity checks: fingerprint uniqueness alone cannot ensure 1,000 visually different videos.
