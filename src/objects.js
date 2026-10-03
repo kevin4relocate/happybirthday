@@ -46,9 +46,9 @@ function drippingIcing(parent,radius,height,centerY,highlight,design){
  const phase=((design.seed%997)/997)*TAU+radius*.7;
  const varied=(a)=>{
   const ripples=.5+.5*Math.sin(a*13+phase);
-  const drops=Math.pow(Math.max(0,Math.sin(a*17-phase*.8)),9);
-  const drops2=Math.pow(Math.max(0,Math.sin(a*11+phase*1.7)),11);
-  return .078+.038*ripples+.25*drops+.15*drops2;
+  const drops=Math.pow(Math.max(0,Math.sin(a*17-phase*.8)),4);
+  const drops2=Math.pow(Math.max(0,Math.sin(a*11+phase*1.7)),5);
+  return .055+.025*ripples+.135*drops+.065*drops2;
  };
  for(let i=0;i<=segments;i++){
   const a=i/segments*TAU;
@@ -401,8 +401,8 @@ export function makeBackdrop(root,theme,design){
  ];
  const left=-14,right=14,segments=22;
  const positions=[],colors=[],uvs=[],indices=[];
- const floorColor=new THREE.Color(theme.floor).multiplyScalar(.44);
- const upperColor=new THREE.Color(theme.back).multiplyScalar(.64);
+ const floorColor=new THREE.Color(theme.floor).multiplyScalar(1.08);
+ const upperColor=new THREE.Color(theme.back).multiplyScalar(.72);
  for(let row=0;row<rows.length;row++){
   const sample=rows[row];
   const shaded=floorColor.clone().lerp(upperColor,sample.mix);
