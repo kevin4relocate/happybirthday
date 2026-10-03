@@ -33,5 +33,5 @@ jobs:
         if: always()
         with:
           name: birthday-v2-browser-preview
-          path: test-output/*.png
+          path: test-output/*
           if-no-files-found: ignore
