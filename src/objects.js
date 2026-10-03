@@ -35,6 +35,56 @@ function tinyStar(material,scale=.13){
  const star=mesh(new THREE.ExtrudeGeometry(shape,{depth:.075,bevelEnabled:true,bevelSegments:1,steps:1,bevelThickness:.014,bevelSize:.022,curveSegments:4}),material);
  star.scale.setScalar(scale);return star;
 }
+/**
+ * Contoured icing apron wraps around each tier with irregular, deterministic drips.
+ * This replaces the toy-like straight cylinder edge with visible frosting volume.
+ */
+function drippingIcing(parent,radius,height,centerY,highlight,design){
+ const segments=192,rows=5;
+ const positions=[],indices=[],uvs=[];
+ const top=centerY+height/2+.032;
+ const phase=((design.seed%997)/997)*TAU+radius*.7;
+ const varied=(a)=>{
+  const ripples=.5+.5*Math.sin(a*13+phase);
+  const drops=Math.pow(Math.max(0,Math.sin(a*17-phase*.8)),9);
+  const drops2=Math.pow(Math.max(0,Math.sin(a*11+phase*1.7)),11);
+  return .078+.038*ripples+.25*drops+.15*drops2;
+ };
+ for(let i=0;i<=segments;i++){
+  const a=i/segments*TAU;
+  const deep=varied(a);
+  for(let row=0;row<rows;row++){
+   const v=row/(rows-1);
+   const protrusion=.024+(.013*Math.sin(v*Math.PI));
+   positions.push(Math.cos(a)*(radius+protrusion),top-deep*v,Math.sin(a)*(radius+protrusion));
+   uvs.push(i/segments,v);
+  }
+ }
+ for(let i=0;i<segments;i++)for(let row=0;row<rows-1;row++){
+  const a=i*rows+row,b=(i+1)*rows+row;
+  indices.push(a,b,a+1,b,b+1,a+1);
+ }
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ geo.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+ geo.setIndex(indices);geo.computeVertexNormals();
+ const mat=frosting(highlight);mat.side=THREE.DoubleSide;
+ mat.roughness=.36;mat.clearcoat=.25;
+ parent.add(mesh(geo,mat));
+}
+function pipedShells(parent,radius,y,highlight,seed){
+ const icing=frosting(highlight);
+ const count=Math.round(radius*38);
+ for(let i=0;i<count;i++){
+  const a=i/count*TAU;
+  const scallop=sphere(.054,icing,10,8);
+  scallop.scale.set(1.25,.72,1.0);
+  pos(scallop,Math.cos(a)*radius,y+.024,Math.sin(a)*radius);
+  scallop.rotation.y=a;
+  parent.add(scallop);
+ }
+}
+
 function icingTier(parent,radius,height,centerY,design,color,highlight,metalMat){
  const cakeMat=ceramic(color,design.finish==='velvet'?.77:design.finish==='satin'?.49:design.finish==='sugar'?.58:.22);
  if(design.finish==='glossy'){cakeMat.clearcoat=.92;cakeMat.roughness=.14}
@@ -42,6 +92,7 @@ function icingTier(parent,radius,height,centerY,design,color,highlight,metalMat)
  const tier=cylinder(radius,radius*1.012,height,cakeMat,80);tier.position.y=centerY;parent.add(tier);
  const bottom=centerY-height/2,top=centerY+height/2;
  const cap=cylinder(radius*1.009,radius*1.009,.075,frosting(highlight),80);cap.position.y=top+.014;parent.add(cap);
+ drippingIcing(parent,radius,height,centerY,highlight,design);
  if(design.finish==='marble'){
    for(let i=0;i<9;i++){
      const angle=i*TAU/9+design.accentVariant;
@@ -71,6 +122,7 @@ function icingTier(parent,radius,height,centerY,design,color,highlight,metalMat)
  }
  const count=radius>1.3?64:42;
  ringBeads(parent,count,radius*.99,top+.085,frosting(highlight),radius>1.3?.065:.048);
+ pipedShells(parent,radius*.90,top+.052,highlight,design.seed);
  if(design.finish==='gold-leaf'||design.decorations==='gold-flakes'){
   for(let i=0;i<36;i++){
    const a=i*TAU/36+design.accentVariant,yy=bottom+.18+((i*7)%13)/13*(height-.32);
@@ -310,31 +362,64 @@ export function makeStage(root,theme,design){
 }
 export function makeBackdrop(root,theme,design){
  const rng=randomGenerator(design.seed^0x17ab1);
- const bg=document.createElement('canvas');bg.width=1024;bg.height=640;
- const c=bg.getContext('2d'),gradient=c.createRadialGradient(512,220,40,512,320,690);
- gradient.addColorStop(0,new THREE.Color(theme.back).lerp(new THREE.Color('#b09bb2'),.13).getStyle());
- gradient.addColorStop(.52,new THREE.Color(theme.back).getStyle());
- gradient.addColorStop(1,'#0a0a14');
- c.fillStyle=gradient;c.fillRect(0,0,1024,640);
- for(let i=0;i<135;i++){
-   const x=rng()*1024,y=rng()*640,rad=.5+rng()*1.7;
-   c.fillStyle='rgba(255,238,208,'+(.06+rng()*.20)+')';c.beginPath();c.arc(x,y,rad,0,TAU);c.fill();
+ // A physically curved photographic cyclorama avoids the harsh horizon line
+ // where a vertical flat backdrop used to intersect the rendered floor.
+ const geometry=new THREE.BufferGeometry();
+ const rows=[
+  {z:-2.8,y:-1.945,mix:0},
+  {z:-3.4,y:-1.944,mix:.02},
+  {z:-4.05,y:-1.72,mix:.13},
+  {z:-4.66,y:-1.08,mix:.26},
+  {z:-5.10,y:-.17,mix:.40},
+  {z:-5.37,y:1.18,mix:.62},
+  {z:-5.51,y:2.70,mix:.79},
+  {z:-5.55,y:4.8,mix:.91},
+  {z:-5.60,y:7.4,mix:1}
+ ];
+ const left=-14,right=14,segments=22;
+ const positions=[],colors=[],uvs=[],indices=[];
+ const floorColor=new THREE.Color(theme.floor).multiplyScalar(.44);
+ const upperColor=new THREE.Color(theme.back).multiplyScalar(.64);
+ for(let row=0;row<rows.length;row++){
+  const sample=rows[row];
+  const shaded=floorColor.clone().lerp(upperColor,sample.mix);
+  for(let i=0;i<=segments;i++){
+   const x=left+(right-left)*i/segments;
+   const slightCurve=-.035*Math.pow(x/14,2);
+   positions.push(x,sample.y,sample.z+slightCurve);
+   colors.push(shaded.r,shaded.g,shaded.b);
+   uvs.push(i/segments,row/(rows.length-1));
+  }
  }
- const texture=new THREE.CanvasTexture(bg);texture.colorSpace=THREE.SRGBColorSpace;
- const backdrop=mesh(new THREE.PlaneGeometry(21,12),new THREE.MeshBasicMaterial({map:texture,depthWrite:false}),false);backdrop.position.set(0,1,-5.7);root.add(backdrop);
- const archMetal=metal(theme.metal,.3);
- for(let side of [-1,1]){
-   const pillar=cylinder(.1,.14,6.5,archMetal,24);
-   pos(pillar,side*4.4,1,-3.6);root.add(pillar);
-   const top=sphere(.22,archMetal);pos(top,side*4.4,4.32,-3.6);root.add(top);
-   for(let i=0;i<4;i++){
-     const gem=sphere(.19,ceramic(theme.palette[i%3]));gem.scale.set(.5,1,.5);
-     pos(gem,side*4.4,-1.7+i*1.7,-3.4);root.add(gem);
-   }
+ for(let row=0;row<rows.length-1;row++)for(let i=0;i<segments;i++){
+  const a=row*(segments+1)+i,b=(row+1)*(segments+1)+i;
+  indices.push(a,b,a+1,b,b+1,a+1);
  }
- const archPoints=[];for(let i=0;i<=24;i++){
-   const a=Math.PI-i/24*Math.PI;
-   archPoints.push(new THREE.Vector3(Math.cos(a)*4.42,2.65+Math.sin(a)*1.24,-3.5));
+ geometry.setIndex(indices);
+ geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+ geometry.computeVertexNormals();
+ const material=new THREE.MeshBasicMaterial({
+  vertexColors:true,side:THREE.DoubleSide,depthWrite:true
+ });
+ const cove=new THREE.Mesh(geometry,material);
+ cove.castShadow=false;cove.receiveShadow=false;
+ root.add(cove);
+ // Discrete studio practicals create depth behind the hero without a cluttered arch.
+ const metalMat=metal(theme.metal,.3);
+ for(const side of [-1,1]){
+  const base=new THREE.Group();
+  base.position.set(side*4.6,-.4,-3.3);
+  const column=cylinder(.048,.065,4.5,metalMat,20);
+  column.position.y=.5;base.add(column);
+  const fixture=sphere(.19,metalMat,20,14);
+  fixture.position.y=2.79;base.add(fixture);
+  const crystal=sphere(.13,new THREE.MeshPhysicalMaterial({
+   color:theme.palette[1],roughness:.06,metalness:.15,
+   transmission:.35,thickness:.4,transparent:true,opacity:.85
+  }),24,16);
+  crystal.position.set(0,2.60,.07);base.add(crystal);
+  root.add(base);
  }
- root.add(tube(archPoints,.057,archMetal));
 }
