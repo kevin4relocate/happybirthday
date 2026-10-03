@@ -296,7 +296,7 @@ export function makeSceneDecor(root,design,theme){
  return t=>updates.forEach(fn=>fn(t));
 }
 export function makeStage(root,theme,design){
- const main=ceramic(theme.floor,.6),m=metal(theme.metal,.33);
+ const main=ceramic(new THREE.Color(theme.floor).multiplyScalar(.55),.75),m=metal(theme.metal,.33);
  const floor=mesh(new THREE.PlaneGeometry(100,100),main,false);floor.rotation.x=-PI/2;floor.position.y=-1.96;floor.receiveShadow=true;root.add(floor);
  const ring=cylinder(3.65,3.9,.18,m,100);ring.position.y=-1.79;root.add(ring);
  const trim=torus(3.69,.055,m);trim.position.y=-1.66;root.add(trim);
