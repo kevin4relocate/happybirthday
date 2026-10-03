@@ -26,7 +26,11 @@ test('recording uses exact frame timestamps and refuses realtime dropped-frame f
  assert.doesNotMatch(src,/\.captureStream\(/);
  assert.doesNotMatch(src,/new MediaRecorder\(/);
 });
-test('all 6 scene configurations are referenced through shared builder',()=>{
+test('all six 3D scenes share the cinematic lighting and atmosphere pipeline',()=>{
  const src=read('../src/scene.js');
- for(const key of ['makeBackdrop','makeStage','makeCake','makeBalloons','makeGifts','makeSceneDecor','createLettering'])assert.ok(src.includes(key),key);
+ for(const key of ['makeBackdrop','makeStage','makeCake','makeBalloons','makeGifts','makeSceneDecor','createLettering','createAtmosphere','cameraPose','lightingPalette'])assert.ok(src.includes(key),key);
+ const atmosphere=read('../src/atmosphere.js');
+ assert.match(atmosphere,/randomGenerator\(/);
+ assert.match(atmosphere,/Math\.sin\(/);
+ assert.doesNotMatch(atmosphere,/Date\.now\(|performance\.now\(|Math\.random\(/);
 });
