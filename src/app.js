@@ -1,4 +1,5 @@
-import {newDesign,EXPORT_FPS,DURATION_SECONDS} from './core.js';
+import {newDesign,SceneHistory,DURATION_SECONDS} from './core.js';
+import {getScene} from './scene-registry.js';
 import {GalaScene} from './scene.js';
 import {recordLoop,saveVideo} from './export.js';
 
@@ -9,6 +10,7 @@ const nodes={form:$('creator-form'),song:$('song-title'),artist:$('artist-name')
  canvas:$('stage'),viewport:$('viewport'),status:$('status'),
  caption:$('scene-caption'),stageName:$('stage-name'),placeholder:$('placeholder')};
 let engine=null,design=null,ready=false,recording=false,controller=null,raf=0,started=0,last=0;
+const history=new SceneHistory(globalThis.localStorage);
 function say(msg,error=false){nodes.status.textContent=msg;nodes.status.dataset.error=String(error)}
 function controls(busy){
  recording=busy;nodes.generate.disabled=busy;nodes.download.disabled=busy||!ready;
@@ -27,13 +29,14 @@ function generate(){
  const title=nodes.song.value.trim(),artist=nodes.artist.value.trim();
  if(!title||!artist){nodes.form.reportValidity();say('Enter a song and artist.',true);return}
  try{
-  const next=newDesign(title,artist,design);
+  const next=newDesign(title,artist,design,Math.random,history.records);
   engine.setup(next);design=next;ready=true;
+  history.add(next.scene);
   nodes.stageName.textContent=title;
-  nodes.caption.textContent='MIDNIGHT GALA · '+next.variantName.toUpperCase();
+  nodes.caption.textContent=getScene(next.scene).name.toUpperCase()+' · '+next.variantName.toUpperCase();
   nodes.download.disabled=false;started=performance.now();
   nodes.placeholder.hidden=true;
-  say('Your cinematic birthday scene is ready. Generate again for a fresh lighting mood.');
+  say(getScene(next.scene).name+' ready. Generate again for a different cinematic scene.');
  }catch(error){ready=false;nodes.download.disabled=true;say(error.message,true);console.error(error)}
 }
 nodes.form.addEventListener('submit',event=>{event.preventDefault();generate()});
@@ -66,7 +69,7 @@ window.addEventListener('beforeunload',()=>{cancelAnimationFrame(raf);controller
   generate();
   raf=requestAnimationFrame(animate);
  }catch(error){
-  say('Unable to load the flagship artwork: '+error.message,true);
+  say('Unable to load the scene library: '+error.message,true);
   nodes.placeholder.textContent='Artwork unavailable. Please reload and try again.';
   console.error(error);
  }
