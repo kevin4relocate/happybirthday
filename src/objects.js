@@ -149,8 +149,22 @@ function makeGift(parent,design,x,z,size,rng,idx,theme){
  const b=new THREE.Group();pos(b,0,height*.64,size*.1);bow(b,theme.accent,size*.27);group.add(b);
  parent.add(group);return group;
 }
+function flameHaloTexture(){
+ const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+ const ctx=canvas.getContext('2d');
+ const grad=ctx.createRadialGradient(64,64,2,64,64,63);
+ grad.addColorStop(0,'rgba(255,251,226,.92)');
+ grad.addColorStop(.18,'rgba(255,208,116,.54)');
+ grad.addColorStop(.48,'rgba(245,131,36,.14)');
+ grad.addColorStop(1,'rgba(255,152,73,0)');
+ ctx.fillStyle=grad;ctx.fillRect(0,0,128,128);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+ return tex;
+}
+
 function createCandles(parent,design,y,rng,theme){
  const lights=[];const pieces=[];const n=design.candleCount;
+ const haloTexture=flameHaloTexture();
  const warm=new THREE.Color('#ffd284'),baseColor=new THREE.Color(theme.metal);
  for(let i=0;i<n;i++){
   const a=TAU*i/n,rr=n>5?.42:.33,x=Math.cos(a)*rr,z=Math.sin(a)*rr;
@@ -161,18 +175,27 @@ function createCandles(parent,design,y,rng,theme){
   flame.scale.set(.55,1.6,.52);pos(flame,x,y+.495,z);parent.add(flame);
   const center=sphere(.04,new THREE.MeshBasicMaterial({color:0xfff4bd,transparent:true,opacity:.88}),12,8);
   center.scale.set(.45,1.4,.48);pos(center,x,y+.48,z+.016);parent.add(center);
-  pieces.push({flame,center,idx:i,baseY:y+.495});
+  const haloMat=new THREE.SpriteMaterial({
+    map:haloTexture,color:0xffc282,transparent:true,opacity:.46,
+    depthWrite:false,blending:THREE.AdditiveBlending
+  });
+  const halo=new THREE.Sprite(haloMat);
+  halo.position.set(x,y+.5,z);halo.scale.set(.42,.63,1);parent.add(halo);
+  pieces.push({flame,center,halo,idx:i,baseY:y+.495});
   if(i<3){
     const light=new THREE.PointLight(warm,1.3,4.2,2);light.position.set(x,y+.5,z);parent.add(light);lights.push(light);
   }
  }
  return t=>{
-  pieces.forEach(({flame,center,idx,baseY})=>{
+  pieces.forEach(({flame,center,halo,idx,baseY})=>{
     const v=Math.sin(TAU*(t+idx*.137)),v2=Math.sin(TAU*(t*2+idx*.218));
     flame.scale.y=1.48+v*.18+v2*.05;flame.scale.x=.55+v2*.06;
     flame.rotation.z=v*.12;
     center.scale.y=1.42+v*.12;
     flame.position.y=baseY+v*.02;center.position.y=baseY-.015+v*.02;
+    halo.position.y=baseY+v*.02;
+    halo.material.opacity=.40+.08*v;
+    halo.scale.set(.40+.025*v2,.61+.045*v,1);
   });
   lights.forEach((light,i)=>{light.intensity=1.25+.24*Math.sin(TAU*(t+i*.143))});
  };
