@@ -1,199 +1,277 @@
-import {ART_VARIANTS,EXPORT_WIDTH,EXPORT_HEIGHT,randomGenerator} from './core.js';
+import {SCENES,getScene} from './scene-registry.js';
+import {EXPORT_WIDTH,EXPORT_HEIGHT,randomGenerator} from './core.js';
 
-const W=EXPORT_WIDTH,H=EXPORT_HEIGHT,TAU=Math.PI*2;
-const between=(lo,hi,rng)=>lo+(hi-lo)*rng();
+const W=EXPORT_WIDTH,H=EXPORT_HEIGHT,TAU=2*Math.PI;
+const between=(a,b,rng)=>a+(b-a)*rng();
 const noZoom=true;
 
-/** Cinematic still-life with photographic detail and native Canvas2D animation.
- *  There is only ONE art-directed room, intentionally not 1,000 random 3D toys.
- *  All variable motion is a periodic function of phase alone.
+/**
+ * Three intentionally independent photographic compositions:
+ * dark editorial / blush botanical / gilded ballroom.
+ * All motion is derived from normalized phase, and the exporter's
+ * first/last cloned compressed frame still guarantees an exact seam.
  */
-export class GalaScene {
+export class GalaScene{
  constructor(canvas,container){
   this.canvas=canvas;this.container=container;
-  this.ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:false});
+  this.ctx=canvas.getContext('2d',{alpha:false});
   if(!this.ctx)throw new Error('Canvas 2D unavailable');
-  this.photo=null;this.design=null;this.staticPlate=null;this.motion=[];
+  this.photos=new Map();this.design=null;this.staticPlate=null;this.motion=[];
   this.exporting=false;this.phase=0;
   this.resizer=typeof ResizeObserver==='function'?new ResizeObserver(()=>this.resize()):null;
   this.resizer?.observe(container);
   this.resize();
  }
  async load(){
-  if(this.photo)return;
-  const img=new Image();
-  await new Promise((resolve,reject)=>{
-   img.onload=()=>resolve();
-   img.onerror=()=>reject(new Error('The licensed cake photograph could not load.'));
-   img.src='./assets/midnight-gala.jpg';
-  });
-  if(!img.naturalWidth||!img.naturalHeight)throw new Error('Hero photograph is empty');
-  this.photo=img;
+  const assets=[...new Set(SCENES.flatMap(scene=>[scene.photo,scene.backdrop].filter(Boolean)))];
+  await Promise.all(assets.map(async url=>{
+   if(this.photos.has(url))return;
+   const photo=new Image();
+   await new Promise((resolve,reject)=>{
+    photo.onload=resolve;
+    photo.onerror=()=>reject(new Error('Cannot load the licensed scene image '+url));
+    photo.src=url;
+   });
+   if(photo.naturalWidth<100||photo.naturalHeight<100)throw new Error('Scene photograph is empty: '+url);
+   this.photos.set(url,photo);
+  }));
  }
  setup(design){
-  if(!this.photo)throw new Error('The photo must finish loading before Generate.');
+  const scene=getScene(design.scene);
+  if(!scene||!this.photos.has(scene.photo)||scene.backdrop&&!this.photos.has(scene.backdrop))
+   throw new Error('Scene assets not loaded: '+design.scene);
   this.design=design;
   const rng=randomGenerator(design.seed);
-  this.motion=Array.from({length:48},(_,i)=>({
-   x:between(i%4===0?930:75,i%4===0?1860:1890,rng),
-   y:between(70,1010,rng),rad:between(3.6,11.0,rng),opacity:between(.045,.22,rng),
-   speed:i%3+1,offset:rng(),sway:between(3,13,rng)
+  const count=scene.id==='golden-ballroom'?38:scene.id==='rose-garden'?32:48;
+  this.motion=Array.from({length:count},(_,i)=>({
+    x:between(45,1875,rng),y:between(60,1020,rng),
+    rad:between(scene.id==='rose-garden'?2:3,scene.id==='rose-garden'?8:11,rng),
+    opacity:between(.04,.19,rng),offset:rng(),sway:between(3,15,rng),
+    speed:1+i%3,depth:i%4,angle:rng()*TAU
   }));
-  this.rebuild();
-  this.draw(0);
+  this.rebuild();this.draw(0);
  }
  resize(){
   if(this.exporting)return;
   const width=Math.max(320,Math.round(this.container.clientWidth||800));
-  const height=Math.round(width*9/16);
   const pixelRatio=Math.min(1.6,Math.max(1,window.devicePixelRatio||1));
-  this.setSize(Math.round(width*pixelRatio),Math.round(height*pixelRatio));
+  this.setSize(Math.round(width*pixelRatio),Math.round(width*9/16*pixelRatio));
  }
  setSize(w,h){
   if(this.canvas.width===w&&this.canvas.height===h)return;
   this.canvas.width=w;this.canvas.height=h;
-  if(this.design&&this.photo){this.rebuild();this.draw(this.phase)}
+  if(this.design&&this.photos.size){this.rebuild();this.draw(this.phase)}
  }
  setExportMode(enabled,options={}){
   this.exporting=enabled;
-  if(enabled){this.setSize(options.width||W,options.height||H)}
+  if(enabled)this.setSize(options.width||W,options.height||H);
   else{
    const width=Math.max(320,Math.round(this.container.clientWidth||800));
    const pixelRatio=Math.min(1.6,Math.max(1,window.devicePixelRatio||1));
    this.setSize(Math.round(width*pixelRatio),Math.round(width*9/16*pixelRatio));
   }
  }
- drawPhoto(c,photo){
-  // Subject occupies the right two-thirds; a feathered edge forms genuine
-  // typographic negative space, not a rectangle placed over the picture.
-  const origin=680,drawWidth=1360;
-  const ratio=Math.max(drawWidth/photo.naturalWidth,H/photo.naturalHeight);
-  const sw=drawWidth/ratio,sh=H/ratio;
-  const sx=Math.max(0,(photo.naturalWidth-sw)*.47);
-  const sy=Math.max(0,(photo.naturalHeight-sh)*.49);
-  const layer=document.createElement('canvas');layer.width=W;layer.height=H;
-  const x=layer.getContext('2d');
-  x.drawImage(photo,sx,sy,sw,sh,origin,0,drawWidth,H);
-  x.globalCompositeOperation='destination-in';
-  const fade=x.createLinearGradient(680,0,1140,0);
-  fade.addColorStop(0,'rgba(255,255,255,0)');
-  fade.addColorStop(.58,'rgba(255,255,255,.74)');
-  fade.addColorStop(1,'rgba(255,255,255,1)');
-  x.fillStyle=fade;x.fillRect(origin,0,drawWidth,H);
-  x.globalCompositeOperation='source-over';
+ canvasLayer(){
+  const layer=document.createElement('canvas');layer.width=W;layer.height=H;return layer;
+ }
+ cover(c,img,x,y,w,h,fx=.5,fy=.5){
+  const scale=Math.max(w/img.naturalWidth,h/img.naturalHeight);
+  const sw=w/scale,sh=h/scale;
+  const sx=Math.max(0,Math.min(img.naturalWidth-sw,(img.naturalWidth-sw)*fx));
+  const sy=Math.max(0,Math.min(img.naturalHeight-sh,(img.naturalHeight-sh)*fy));
+  c.drawImage(img,sx,sy,sw,sh,x,y,w,h);
+ }
+ maskedImage(c,img,rect,mask){
+  const layer=this.canvasLayer(),ctx=layer.getContext('2d');
+  this.cover(ctx,img,...rect);
+  ctx.globalCompositeOperation='destination-in';
+  ctx.fillStyle=mask(ctx);
+  ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
   c.drawImage(layer,0,0);
  }
- drawStill(c){
-  const variant=ART_VARIANTS[this.design.variant];
-  c.fillStyle='#100a11';c.fillRect(0,0,W,H);
-  // A photograph, not cylinder meshes, gives the still-life real surface detail.
-  // All expensive filters are composed once, never per animation frame.
-  c.save();c.globalAlpha=.19;c.filter='blur(76px)';
-  c.drawImage(this.photo,0,0,W,H);c.restore();
-  this.drawPhoto(c,this.photo);
-  const shade=c.createLinearGradient(0,0,1480,0);
-  shade.addColorStop(0,'rgba(9,8,15,.96)');
-  shade.addColorStop(.38,'rgba(11,9,16,.88)');
-  shade.addColorStop(.60,'rgba(13,9,14,.34)');
-  shade.addColorStop(1,'rgba(13,7,9,.04)');
-  c.fillStyle=shade;c.fillRect(0,0,W,H);
-  const vignette=c.createRadialGradient(1130,530,200,990,540,1280);
-  vignette.addColorStop(0,'rgba(6,4,9,0)');
-  vignette.addColorStop(1,'rgba(6,4,9,.62)');
-  c.fillStyle=vignette;c.fillRect(0,0,W,H);
-  c.fillStyle='rgba(9,8,13,'+(1-variant.dim)*.22+')';c.fillRect(0,0,W,H);
-  this.drawEditorialType(c,variant);
-  // Tiny foil accents are part of the set dressing, not a giant title box.
-  c.fillStyle='rgba(211,180,125,.68)';
-  c.fillRect(128,165,38,2);
-  c.fillRect(128,869,44,2);
-  c.fillRect(128,160,2,13);
-  c.fillRect(128,864,2,13);
+ gradient(c,x1,y1,x2,y2,stops){
+  const g=c.createLinearGradient(x1,y1,x2,y2);
+  for(const [at,color] of stops)g.addColorStop(at,color);
+  return g;
  }
- fitFont(c,text,initial,maxWidth,family,min=24){
+ fit(c,text,initial,max,family,min=23){
   let size=initial;
   while(size>min){
-   c.font='normal '+size+'px '+family;
-   if(c.measureText(text).width<=maxWidth)break;
+   c.font=size+'px '+family;
+   if(c.measureText(text).width<=max)break;
    size-=2;
   }
-  return Math.max(min,size);
+  return size;
  }
- drawEditorialType(c,variant){
-  const x=142,max=710;
-  c.save();c.textAlign='left';c.textBaseline='alphabetic';
-  c.font='600 22px Arial,sans-serif';
-  c.fillStyle='rgba(240,203,152,.78)';
-  c.fillText('A NIGHT TO REMEMBER',x,310);
-  c.fillStyle='#e8c78f';c.fillRect(x,331,128,1.5);
+ type(c,x,y,width,opt){
   const [first,second]=this.design.lines;
-  const titleSize=this.fitFont(c,first,102,max,'Georgia,serif',45);
-  const gradient=c.createLinearGradient(x,370,x+640,595);
-  gradient.addColorStop(0,'#fff3dc');
-  gradient.addColorStop(.53,variant.ink);
-  gradient.addColorStop(1,'#c8a76b');
-  c.fillStyle=gradient;c.font='normal '+titleSize+'px Georgia,serif';
-  c.shadowColor='rgba(246,204,139,.19)';c.shadowBlur=17;
-  c.fillText(first,x,490,max);
+  const family=opt.family||'Georgia,serif';
+  c.save();
+  c.textBaseline='alphabetic';c.textAlign='left';
+  c.font='600 18px Arial,sans-serif';
+  c.letterSpacing='2px';
+  c.fillStyle=opt.labelColor;
+  c.fillText(opt.kicker,x,y-172,width);
+  c.letterSpacing='0px';
+  const n=this.fit(c,first,opt.size||94,width,family,38);
+  c.font=n+'px '+family;
+  c.shadowBlur=opt.shadowBlur||0;
+  c.shadowColor=opt.shadow||'transparent';
+  c.fillStyle=opt.titleColor;
+  c.fillText(first,x,y,width);
   c.shadowBlur=0;
   if(second){
-   const secondSize=this.fitFont(c,second,51,max,'Georgia,serif',28);
-   c.font='italic '+secondSize+'px Georgia,serif';
-   c.fillStyle='#f7e6d2';
-   c.fillText(second,x,570,max);
+   const m=this.fit(c,second,opt.secondSize||48,width,family,24);
+   c.fillStyle=opt.secondColor||opt.titleColor;
+   c.font='italic '+m+'px '+family;
+   c.fillText(second,x,y+82,width);
   }
-  const artistY=725;
-  c.fillStyle='rgba(232,202,151,.72)';
-  c.fillRect(x,artistY-59,388,1);
-  c.font='600 20px Arial,sans-serif';
-  c.fillText('MUSIC BY',x,artistY-22);
-  c.fillStyle='#f7e8d6';
-  const artistSize=this.fitFont(c,this.design.artist,43,655,'Georgia,serif',23);
-  c.font='normal '+artistSize+'px Georgia,serif';
-  c.fillText(this.design.artist,x,artistY+38,max);
+  const dividerY=y+164;
+  c.fillStyle=opt.ruleColor;
+  c.fillRect(x,dividerY,Math.min(width*.62,340),1);
+  c.fillStyle=opt.labelColor;
+  c.font='600 18px Arial,sans-serif';
+  c.fillText('MUSIC BY',x,dividerY+50,width);
+  const artistSize=this.fit(c,this.design.artist,opt.artistSize||42,width,family,23);
+  c.font=artistSize+'px '+family;
+  c.fillStyle=opt.artistColor||opt.secondColor||opt.titleColor;
+  c.fillText(this.design.artist,x,dividerY+111,width);
   c.restore();
  }
+ drawMidnight(c,scene){
+  const img=this.photos.get(scene.photo);
+  c.fillStyle='#100a11';c.fillRect(0,0,W,H);
+  c.save();c.globalAlpha=.19;c.filter='blur(76px)';this.cover(c,img,0,0,W,H);c.restore();
+  this.maskedImage(c,img,[690,0,1230,H],ctx=>this.gradient(ctx,690,0,1210,0,[
+   [0,'rgba(255,255,255,0)'],[.6,'rgba(255,255,255,.78)'],[1,'white']
+  ]));
+  c.fillStyle=this.gradient(c,0,0,1500,0,[
+   [0,'rgba(9,8,15,.98)'],[.36,'rgba(11,9,16,.86)'],
+   [.67,'rgba(13,9,14,.22)'],[1,'rgba(13,7,9,.04)']
+  ]);c.fillRect(0,0,W,H);
+  c.fillStyle='#dfb979';c.fillRect(142,320,135,1);
+  this.type(c,142,487,720,{kicker:'A NIGHT TO REMEMBER',size:100,
+   labelColor:'#dabb8b',titleColor:'#f8e5cc',secondColor:'#f9e8d4',
+   ruleColor:'rgba(222,183,127,.69)',artistColor:'#f9ebdd',shadow:'rgba(255,194,120,.22)',shadowBlur:16});
+ }
+ drawRose(c,scene){
+  const img=this.photos.get(scene.photo);
+  c.fillStyle='#e9d2cb';c.fillRect(0,0,W,H);
+  c.fillStyle=this.gradient(c,0,0,W,H,[
+   [0,'#d5b1b2'],[.48,'#f3dcd2'],[1,'#f7e6d9']
+  ]);c.fillRect(0,0,W,H);
+  this.maskedImage(c,img,[0,0,1260,H],ctx=>this.gradient(ctx,725,0,1460,0,[
+   [0,'rgba(255,255,255,1)'],[.49,'rgba(255,255,255,.88)'],[1,'rgba(255,255,255,0)']
+  ]));
+  const warm=c.createLinearGradient(850,0,1800,H);
+  warm.addColorStop(0,'rgba(251,226,222,.15)');
+  warm.addColorStop(1,'rgba(252,236,223,.59)');
+  c.fillStyle=warm;c.fillRect(750,0,1170,H);
+  // Botanical lines, fine and secondary to the photographed cake.
+  c.strokeStyle='rgba(136,77,86,.21)';c.lineWidth=2;c.beginPath();
+  c.moveTo(1780,90);c.bezierCurveTo(1690,240,1855,335,1785,510);
+  c.bezierCurveTo(1680,675,1836,769,1710,975);c.stroke();
+  for(let i=0;i<9;i++){
+   const y=190+i*86;
+   c.beginPath();c.ellipse(1740+(i%2)*65,y,20,52,(i%2?-.52:.52),0,TAU);c.stroke();
+  }
+  c.fillStyle='#b57f8d';c.fillRect(1158,292,120,2);
+  this.type(c,1158,445,620,{kicker:'THE ROSE GARDEN',size:89,
+   labelColor:'#925d6e',titleColor:'#523440',secondColor:'#744755',
+   ruleColor:'rgba(133,82,97,.56)',artistColor:'#543540'});
+ }
+ drawGolden(c,scene){
+  const hall=this.photos.get(scene.backdrop),cake=this.photos.get(scene.photo);
+  c.fillStyle='#26180f';c.fillRect(0,0,W,H);
+  this.cover(c,hall,0,0,W,H,.5,.43);
+  c.fillStyle='rgba(25,11,7,.66)';c.fillRect(0,0,W,H);
+  c.fillStyle=this.gradient(c,0,0,1620,0,[
+   [0,'rgba(20,9,10,.92)'],[.36,'rgba(27,15,13,.83)'],
+   [.67,'rgba(28,16,14,.39)'],[1,'rgba(25,13,12,.23)']
+  ]);c.fillRect(0,0,W,H);
+  this.maskedImage(c,cake,[1030,65,835,960],ctx=>{
+   const g=ctx.createRadialGradient(1450,515,240,1450,535,570);
+   g.addColorStop(0,'rgba(255,255,255,1)');
+   g.addColorStop(.57,'rgba(255,255,255,.99)');
+   g.addColorStop(.83,'rgba(255,255,255,.68)');
+   g.addColorStop(1,'rgba(255,255,255,0)');
+   return g;
+  });
+  c.fillStyle=this.gradient(c,0,H*.69,0,H,[
+   [0,'rgba(28,14,12,0)'],[1,'rgba(26,10,10,.49)']
+  ]);c.fillRect(0,0,W,H);
+  // Fine architectural gilt lines; no toy decorations.
+  c.strokeStyle='rgba(226,183,108,.45)';c.lineWidth=2;
+  c.strokeRect(55,53,1810,974);
+  c.strokeStyle='rgba(226,183,108,.19)';c.strokeRect(74,71,1772,936);
+  c.fillStyle='#e3bb7c';c.fillRect(149,307,143,2);
+  this.type(c,151,490,760,{kicker:'AN EVENING IN GOLD',size:101,
+   labelColor:'#e5bd86',titleColor:'#f7e6c7',secondColor:'#f3d5a2',
+   ruleColor:'rgba(236,199,137,.58)',artistColor:'#f5e4cb',
+   shadow:'rgba(250,198,107,.21)',shadowBlur:18});
+ }
+ drawStill(c){
+  const scene=getScene(this.design.scene);
+  if(scene.id==='midnight-gala')this.drawMidnight(c,scene);
+  else if(scene.id==='rose-garden')this.drawRose(c,scene);
+  else if(scene.id==='golden-ballroom')this.drawGolden(c,scene);
+  else throw Error('No cinematic composition: '+scene.id);
+  const v=c.createRadialGradient(985,515,310,985,510,1280);
+  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.36)');
+  c.fillStyle=v;c.fillRect(0,0,W,H);
+ }
  rebuild(){
-  if(!this.photo||!this.design)return;
-  const c=document.createElement('canvas');c.width=this.canvas.width;c.height=this.canvas.height;
-  const x=c.getContext('2d',{alpha:false});
-  x.setTransform(c.width/W,0,0,c.height/H,0,0);
-  this.drawStill(x);
-  this.staticPlate=c;
+  if(!this.design||this.photos.size<3)return;
+  const plate=document.createElement('canvas');
+  plate.width=this.canvas.width;plate.height=this.canvas.height;
+  const c=plate.getContext('2d',{alpha:false});
+  c.setTransform(plate.width/W,0,0,plate.height/H,0,0);
+  this.drawStill(c);this.staticPlate=plate;
  }
  draw(phase=0){
   if(!this.staticPlate)return;
   this.phase=(phase%1+1)%1;
-  const c=this.ctx;
-  c.setTransform(1,0,0,1,0,0);
+  const c=this.ctx;c.setTransform(1,0,0,1,0,0);
   c.drawImage(this.staticPlate,0,0);
   c.setTransform(this.canvas.width/W,0,0,this.canvas.height/H,0,0);
-  const t=this.phase*TAU;
-  const art=ART_VARIANTS[this.design.variant];
+  const t=this.phase*TAU,scene=getScene(this.design.scene);
   c.save();
-  // Localized practical candle glow, never a full-screen blinking layer.
-  const warmth=.070+.030*Math.sin(t+.2)+.015*Math.sin(t*2+1);
-  const glow=c.createRadialGradient(1390,390,23,1390,390,495);
-  glow.addColorStop(0,'rgba(255,206,142,'+Math.max(.01,warmth)+')');
-  glow.addColorStop(.5,'rgba(241,147,74,'+(warmth*.29)+')');
-  glow.addColorStop(1,'rgba(255,131,73,0)');
-  c.fillStyle=glow;c.fillRect(730,0,1190,940);
-  for(const dust of this.motion){
-   const ph=t*dust.speed+TAU*dust.offset;
-   const dx=dust.x+Math.sin(ph)*dust.sway;
-   const dy=dust.y+Math.sin(ph+1.3)*dust.sway*.7;
-   const alpha=dust.opacity*(.6+.4*Math.sin(ph+.8)**2);
+  const pulse=.06+.023*Math.sin(t+.3)+.011*Math.sin(2*t+1);
+  const lx=scene.id==='rose-garden'?410:scene.id==='golden-ballroom'?1560:1390;
+  const ly=scene.id==='rose-garden'?400:scene.id==='golden-ballroom'?340:390;
+  const glow=c.createRadialGradient(lx,ly,25,lx,ly,460);
+  if(scene.id==='rose-garden'){
+   glow.addColorStop(0,'rgba(251,178,168,'+(pulse*.62)+')');
+   glow.addColorStop(1,'rgba(255,193,190,0)');
+  }else{
+   glow.addColorStop(0,'rgba(255,207,139,'+pulse+')');
+   glow.addColorStop(.50,'rgba(237,157,78,'+(pulse*.31)+')');
+   glow.addColorStop(1,'rgba(255,140,64,0)');
+  }
+  c.fillStyle=glow;c.fillRect(lx-475,ly-475,950,950);
+  const colors=scene.id==='rose-garden'?['#ffe6d5','#f6aab6','#fff1e0']:
+    scene.id==='golden-ballroom'?['#ffe2aa','#eec588','#fff4d7']:
+    ['#f5be80','#f4d49b','#ffd6bc'];
+  for(let i=0;i<this.motion.length;i++){
+   const d=this.motion[i],ph=t*d.speed+TAU*d.offset;
+   const dx=d.x+Math.sin(ph)*d.sway,dy=d.y+Math.cos(ph+.8)*d.sway*.66;
+   const alpha=d.opacity*(.55+.45*Math.sin(ph+.25)**2);
+   const radius=d.rad*(.92+.08*Math.sin(ph*2));
    c.globalAlpha=alpha;
-   const r=dust.rad*(.91+.13*Math.cos(ph));
-   const light=c.createRadialGradient(dx,dy,0,dx,dy,r*3.5);
-   light.addColorStop(0,art.glow);
-   light.addColorStop(.20,'rgba(242,184,118,.52)');
-   light.addColorStop(1,'rgba(235,156,101,0)');
-   c.fillStyle=light;c.beginPath();c.arc(dx,dy,r*3.5,0,TAU);c.fill();
+   if(scene.id==='rose-garden'&&d.depth===0){
+    c.save();c.translate(dx,dy);c.rotate(d.angle+.12*Math.sin(ph));
+    c.fillStyle=colors[i%3];c.beginPath();c.ellipse(0,0,radius*.76,radius*1.6,.12,0,TAU);c.fill();
+    c.restore();continue;
+   }
+   const spark=c.createRadialGradient(dx,dy,0,dx,dy,radius*3.4);
+   spark.addColorStop(0,colors[i%3]);
+   spark.addColorStop(.21,colors[(i+1)%3]+'77');
+   spark.addColorStop(1,'rgba(255,210,156,0)');
+   c.fillStyle=spark;c.beginPath();c.arc(dx,dy,radius*3.4,0,TAU);c.fill();
   }
   c.restore();
-  // Fixed camera. No zoom/pan. Every moving value is a function of phase.
-  if(!noZoom)throw new Error('Camera motion is disabled for exact loops.');
+  if(!noZoom)throw Error('Loop camera must stay fixed');
  }
- dispose(){this.resizer?.disconnect();this.staticPlate=null;this.photo=null}
+ dispose(){this.resizer?.disconnect();this.staticPlate=null;this.photos.clear()}
 }
