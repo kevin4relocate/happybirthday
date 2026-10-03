@@ -36,10 +36,30 @@ function tinyStar(material,scale=.13){
  star.scale.setScalar(scale);return star;
 }
 function icingTier(parent,radius,height,centerY,design,color,highlight,metalMat){
- const cakeMat=ceramic(color);
+ const cakeMat=ceramic(color,design.finish==='velvet'?.77:design.finish==='satin'?.49:design.finish==='sugar'?.58:.22);
+ if(design.finish==='glossy'){cakeMat.clearcoat=.92;cakeMat.roughness=.14}
+ if(design.finish==='marble'){cakeMat.metalness=.12;cakeMat.clearcoat=.85}
  const tier=cylinder(radius,radius*1.012,height,cakeMat,80);tier.position.y=centerY;parent.add(tier);
  const bottom=centerY-height/2,top=centerY+height/2;
  const cap=cylinder(radius*1.009,radius*1.009,.075,frosting(highlight),80);cap.position.y=top+.014;parent.add(cap);
+ if(design.finish==='marble'){
+   for(let i=0;i<9;i++){
+     const angle=i*TAU/9+design.accentVariant;
+     const line=tube([
+       new THREE.Vector3(Math.cos(angle)*radius,bottom+.12,Math.sin(angle)*radius),
+       new THREE.Vector3(Math.cos(angle+.04)*radius,centerY,Math.sin(angle+.04)*radius),
+       new THREE.Vector3(Math.cos(angle+.08)*radius,top-.08,Math.sin(angle+.08)*radius)
+     ],.009,metalMat);parent.add(line);
+   }
+ }
+ if(design.finish==='sugar'){
+   const sugar=frosting(highlight);
+   for(let i=0;i<130;i++){
+     const a=i*TAU/130,y=bottom+.12+(((i*37)%131)/131)*(height-.22);
+     const fleck=sphere(.017,sugar,6,4);
+     pos(fleck,Math.cos(a)*(radius+.012),y,Math.sin(a)*(radius+.012));parent.add(fleck);
+   }
+ }
  const topRing=torus(radius*.98,.048,frosting(highlight));topRing.position.y=top+.057;parent.add(topRing);
  const lower=torus(radius*.97,.03,metalMat);lower.position.y=bottom+.12;parent.add(lower);
  const mid=cylinder(radius*1.01,radius*1.01,.022,metalMat,80);mid.position.y=bottom+.02;parent.add(mid);
@@ -113,7 +133,7 @@ export function makeCake(root,design,theme){
  const foot=cylinder(1.52,1.72,.28,base,64);foot.position.y=-1.75;stand.add(foot);
  const rim=torus(2.48,.042,gold);rim.position.y=-1.37;stand.add(rim);
  const inset=torus(1.59,.024,gold);inset.position.y=-1.86;stand.add(inset);
- const cakeRoot=new THREE.Group();cakeRoot.scale.setScalar(design.cakeScale);
+ const cakeRoot=new THREE.Group();cakeRoot.scale.setScalar(design.cakeScale*(design.cakeStyle==='mini'?.79:1));
  const tiers=design.cakeStyle==='three-tier'?3:design.cakeStyle==='mini'?2:2;
  let top=-.32;
  const cakeColor=new THREE.Color(theme.cake);
@@ -146,6 +166,15 @@ export function makeCake(root,design,theme){
      for(let j=0;j<3;j++){const spr=box(.045,.018,.016,ceramic(theme.palette[(i+j)%3]));
         pos(spr,x+(rng()-.5)*.13,y,z+(rng()-.5)*.13);spr.rotation.y=rng()*TAU;cakeRoot.add(spr)}
    }
+ }
+ if(design.cakeStyle==='heart'){
+   const heartShape=new THREE.Shape();
+   heartShape.moveTo(0,-.25);
+   heartShape.bezierCurveTo(-.76,.12,-.75,.68,0,.35);
+   heartShape.bezierCurveTo(.75,.68,.76,.12,0,-.25);
+   const heart=mesh(new THREE.ExtrudeGeometry(heartShape,{depth:.09,bevelEnabled:true,bevelSegments:2,bevelThickness:.026,bevelSize:.026,steps:1,curveSegments:14}),fruitsMaterial);
+   heart.position.set(0,-.36,1.38);cakeRoot.add(heart);
+   const heartTrim=tinyStar(pearl,.19);heartTrim.position.set(0,-.03,1.53);cakeRoot.add(heartTrim);
  }
  const animateFlames=createCandles(cakeRoot,design,top,rng,theme);
  stand.add(cakeRoot);root.add(stand);
@@ -218,13 +247,14 @@ export function makeFlowers(root,design,theme){
  }
  return t=>plants.forEach(({group,j,side})=>{group.rotation.z=Math.sin(TAU*(t+j*.079))*.035*side});
 }
-export function makeMoon(root,theme){
+export function makeMoon(root,theme,design){
+ const rng=randomGenerator(design.seed^0xd4ba1);
  const mat=new THREE.MeshBasicMaterial({color:0xffefbf});
  const disk=sphere(.59,mat,36,24);pos(disk,2.66,2.45,-3.7);root.add(disk);
  const cut=sphere(.54,new THREE.MeshBasicMaterial({color:theme.back}));pos(cut,2.91,2.62,-3.51);root.add(cut);
  const ring=torus(.75,.014,metal(theme.metal));ring.position.set(2.66,2.45,-3.76);ring.rotation.x=0;root.add(ring);
  for(let i=0;i<18;i++){
-   const s=tinyStar(metal(theme.palette[i%3],.37),.1+Math.random()*.03);
+   const s=tinyStar(metal(theme.palette[i%3],.37),.1+rng()*.03);
    s.position.set(-4.2+(i%9)*1.1,1.2+Math.floor(i/9)*1.7,-3.3);
    root.add(s);
  }
@@ -260,7 +290,7 @@ export function makeMusicBox(root,design,theme){
 export function makeSceneDecor(root,design,theme){
  const updates=[makeParticleGarden(root,design,theme)];
  if(design.scene==='garden')updates.push(makeFlowers(root,design,theme));
- if(design.scene==='moonlit')makeMoon(root,theme);
+ if(design.scene==='moonlit')makeMoon(root,theme,design);
  if(design.scene==='disco')updates.push(makeDisco(root,design,theme));
  if(design.scene==='musicbox')updates.push(makeMusicBox(root,design,theme));
  return t=>updates.forEach(fn=>fn(t));
