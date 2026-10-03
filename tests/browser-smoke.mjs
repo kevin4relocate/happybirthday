@@ -29,7 +29,7 @@ const port=server.address().port;
 const executable=process.env.CHROME_BIN||'/usr/bin/google-chrome';
 let browser;
 try{
-  browser=await puppeteer.launch({headless:true,executablePath:executable,
+  browser=await puppeteer.launch({headless:true,executablePath:executable,protocolTimeout:540000,
     args:['--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   const page=await browser.newPage();
   await page.setViewport({width:1440,height:950,deviceScaleFactor:1});
