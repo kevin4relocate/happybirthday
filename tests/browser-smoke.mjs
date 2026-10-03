@@ -48,6 +48,7 @@ try{
   fs.mkdirSync(path.join(root,'test-output'),{recursive:true});
   await page.screenshot({path:path.join(root,'test-output','birthday-v2-desktop.png'),fullPage:true});
   await page.click('#generate');
+  await page.screenshot({path:path.join(root,'test-output','birthday-v2-cinematic-second-scene.png'),fullPage:true});
   const second=await page.evaluate(()=>document.querySelector('#scene-caption')?.textContent);
   assert.notEqual(initial.scene,second,'Generate must change the scene family on adjacent clicks');
   await page.evaluate(()=>{

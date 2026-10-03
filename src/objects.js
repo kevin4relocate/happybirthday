@@ -6,7 +6,7 @@ const TAU=Math.PI*2;
 const pale=new THREE.Color('#fff4e6');
 const metal=(color,roughness=.25)=>new THREE.MeshPhysicalMaterial({color,metalness:.78,roughness,clearcoat:.45,clearcoatRoughness:.22});
 const ceramic=(color,roughness=.32)=>new THREE.MeshPhysicalMaterial({color,metalness:.04,roughness,clearcoat:.26,clearcoatRoughness:.2});
-const frosting=(color)=>new THREE.MeshPhysicalMaterial({color,metalness:0,roughness:.27,clearcoat:.2});
+const frosting=(color)=>new THREE.MeshPhysicalMaterial({color,metalness:0,roughness:.42,clearcoat:.18,sheen:1,sheenColor:new THREE.Color(color),sheenRoughness:.8});
 const glass=(color,opacity=.75)=>new THREE.MeshPhysicalMaterial({color,metalness:.12,roughness:.1,transparent:true,opacity,depthWrite:false,clearcoat:1});
 const emissive=(color,intensity=1.6)=>new THREE.MeshBasicMaterial({color});
 const mesh=(geometry,material,shadows=true)=>{const m=new THREE.Mesh(geometry,material);m.castShadow=shadows;m.receiveShadow=true;return m};
@@ -128,10 +128,11 @@ function createCandles(parent,design,y,rng,theme){
 export function makeCake(root,design,theme){
  const rng=randomGenerator(design.seed^0x124845);
  const stand=new THREE.Group();
- const gold=metal(theme.metal,.3),base=metal(theme.floor,.42);
+ const gold=metal(theme.metal,.23),base=ceramic(theme.floor,.48);
  const plate=cylinder(2.45,2.58,.23,gold,88);plate.position.y=-1.5;stand.add(plate);
  const foot=cylinder(1.52,1.72,.28,base,64);foot.position.y=-1.75;stand.add(foot);
  const rim=torus(2.48,.042,gold);rim.position.y=-1.37;stand.add(rim);
+ const fineRim=torus(2.29,.013,metal(theme.palette[1],.18));fineRim.position.y=-1.365;stand.add(fineRim);
  const inset=torus(1.59,.024,gold);inset.position.y=-1.86;stand.add(inset);
  const cakeRoot=new THREE.Group();cakeRoot.scale.setScalar(design.cakeScale*(design.cakeStyle==='mini'?.79:1));
  const tiers=design.cakeStyle==='three-tier'?3:design.cakeStyle==='mini'?2:2;
@@ -187,7 +188,7 @@ export function makeBalloons(root,design,theme){
   const x=baseOffsets[i]+(rng()-.5)*.36,y=.20+(i%4)*.53+rng()*.21,z=-.4-rng()*1.5;
   const balloon=new THREE.Group();balloon.position.set(x,y,z);
   const material=metals[(i+design.accentVariant)%metals.length];
-  const body=sphere(.43,material,28,18);body.scale.set(.8,1.07,.75);balloon.add(body);
+  const body=sphere(.43,material,28,18);body.scale.set(.78,1.08,.76);balloon.add(body);
   const knot=new THREE.Mesh(new THREE.ConeGeometry(.064,.11,10),material);pos(knot,0,-.52,0);knot.rotation.z=PI;balloon.add(knot);
   const rope=tube([new THREE.Vector3(0,-.52,0),new THREE.Vector3(.12,-.8,0),new THREE.Vector3(-.07,-1.1,.04),new THREE.Vector3(0,-1.43,.06)],.007,ceramic('#d5c5b8'));
   balloon.add(rope);
@@ -296,7 +297,8 @@ export function makeSceneDecor(root,design,theme){
  return t=>updates.forEach(fn=>fn(t));
 }
 export function makeStage(root,theme,design){
- const main=ceramic(new THREE.Color(theme.floor).multiplyScalar(.55),.75),m=metal(theme.metal,.33);
+ const main=ceramic(new THREE.Color(theme.floor).multiplyScalar(.43),.82),m=metal(theme.metal,.28);
+ main.metalness=.12;main.clearcoat=.12;
  const floor=mesh(new THREE.PlaneGeometry(100,100),main,false);floor.rotation.x=-PI/2;floor.position.y=-1.96;floor.receiveShadow=true;root.add(floor);
  const ring=cylinder(3.65,3.9,.18,m,100);ring.position.y=-1.79;root.add(ring);
  const trim=torus(3.69,.055,m);trim.position.y=-1.66;root.add(trim);
@@ -310,7 +312,7 @@ export function makeBackdrop(root,theme,design){
  const rng=randomGenerator(design.seed^0x17ab1);
  const bg=document.createElement('canvas');bg.width=1024;bg.height=640;
  const c=bg.getContext('2d'),gradient=c.createRadialGradient(512,220,40,512,320,690);
- gradient.addColorStop(0,new THREE.Color(theme.back).lerp(new THREE.Color('#b09bb2'),.19).getStyle());
+ gradient.addColorStop(0,new THREE.Color(theme.back).lerp(new THREE.Color('#b09bb2'),.13).getStyle());
  gradient.addColorStop(.52,new THREE.Color(theme.back).getStyle());
  gradient.addColorStop(1,'#0a0a14');
  c.fillStyle=gradient;c.fillRect(0,0,1024,640);

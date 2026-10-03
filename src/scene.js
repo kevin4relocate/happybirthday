@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import {SCENES,EXPORT_WIDTH,EXPORT_HEIGHT,DURATION_SECONDS} from './core.js';
 import {makeBackdrop,makeStage,makeCake,makeBalloons,makeGifts,makeSceneDecor} from './objects.js';
 import {createLettering} from './type.js';
+import {cinematicProfile,cameraPose,lightingPalette} from './cinematic-profile.js';
+import {createAtmosphere} from './atmosphere.js';
 
 export class BirthdayScene {
  constructor(canvas,viewport){
@@ -37,37 +39,45 @@ export class BirthdayScene {
   const theme=SCENES.find(x=>x.id===design.scene);
   if(!theme)throw new Error('Scene preset not found');
   this.clearWorld();
+  const profile=cinematicProfile(design);
+  const pose=cameraPose(profile);
+  const lighting=lightingPalette(profile,theme);
+  this.camera.position.set(pose.x,pose.y,pose.z);
+  this.camera.fov=pose.fov;
+  this.camera.lookAt(0,pose.targetY,0);
+  this.camera.updateProjectionMatrix();
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(theme.back);
   scene.fog=new THREE.FogExp2(theme.back,.012);
   const root=new THREE.Group();scene.add(root);
   makeBackdrop(root,theme,design);
+  const atmosphereUpdate=createAtmosphere(root,design,theme);
   makeStage(root,theme,design);
   const cakeUpdate=makeCake(root,design,theme);
   const balloonsUpdate=makeBalloons(root,design,theme);
   makeGifts(root,design,theme);
   const decorationsUpdate=makeSceneDecor(root,design,theme);
   const letteringUpdate=createLettering(root,design,theme,font);
-  const ambient=new THREE.HemisphereLight(0xffe9d1,0x455075,1.65);scene.add(ambient);
-  const key=new THREE.DirectionalLight(0xffe9cb,4.2);
-  key.position.set(-3+(design.lightVariation%3)*.45,7,6);key.intensity=3.75+design.lightVariation*.12;key.castShadow=true;
+  const ambient=new THREE.HemisphereLight(0xffe6d7,0x273145,lighting.ambient);scene.add(ambient);
+  const key=new THREE.DirectionalLight(lighting.key,lighting.keyPower);
+  key.position.set(-3.2+(design.lightVariation%3)*.24,6.8,5.2);key.castShadow=true;
   key.shadow.mapSize.set(2048,2048);
   key.shadow.camera.left=-8;key.shadow.camera.right=8;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;
   key.shadow.camera.near=.1;key.shadow.camera.far=25;key.shadow.bias=-.00009;
   key.shadow.normalBias=.02;key.shadow.radius=4;
   scene.add(key);
-  const rim=new THREE.DirectionalLight(theme.palette[1],3);
-  rim.position.set(5-(design.lightVariation%4)*.22,5,-4);scene.add(rim);
-  const soft=new THREE.PointLight(theme.palette[2],11,14,2);
-  soft.position.set(2.2,2.0,5);scene.add(soft);
-  if(design.scene==='disco'){
-    this.renderer.toneMappingExposure=1.04;
-  }else if(design.scene==='moonlit'){
-    this.renderer.toneMappingExposure=1.13;
-  }else{
-    this.renderer.toneMappingExposure=1.25;
-  }
-  const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate];
+  const rim=new THREE.DirectionalLight(lighting.rim,lighting.rimPower);
+  rim.position.set(4.9-(design.lightVariation%4)*.18,4.8,-3.2);scene.add(rim);
+  const soft=new THREE.PointLight(lighting.fill,lighting.fillPower*3.0,14,2);
+  soft.position.set(2.9,1.9,5);scene.add(soft);
+  // Motivated practical light sits close to the cake rather than washing the entire stage.
+  const candleBounce=new THREE.PointLight(0xffc888,2.2,5.8,2);
+  candleBounce.position.set(-.95,.82,1.6);scene.add(candleBounce);
+  // A broad grazing highlight brings out icing and metallized ribbons.
+  const silkRim=new THREE.DirectionalLight(theme.palette[1],1.35);
+  silkRim.position.set(-4.5,1.9,-2.7);scene.add(silkRim);
+  this.renderer.toneMappingExposure=lighting.exposure;
+  const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
   this.scene=scene;this.world=root;this.design=design;
   this.update=t=>callbacks.forEach(fn=>fn(t));
   this.draw(0);

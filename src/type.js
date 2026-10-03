@@ -48,7 +48,10 @@ function addText(root,text,font,size,maxWidth,y,z,color,options={}){
  const material=physical(color,options.metalness??.58);
  if(options.roughness!==undefined)material.roughness=options.roughness;
  if(options.glow){material.emissive=new THREE.Color(color);material.emissiveIntensity=.19}
- const obj=mesh(geo,material);
+ // Separate the illuminated face and warmer extrusion side for depth.
+ const edge=physical(new THREE.Color(color).multiplyScalar(.52),options.metalness??.58);
+ edge.roughness=.38;edge.clearcoat=.3;
+ const obj=mesh(geo,[material,edge]);
  obj.scale.setScalar(Math.min(1,maxWidth/width));
  obj.position.set(0,y,z);
  root.add(obj);return obj;
@@ -91,17 +94,39 @@ function trim(root,design,theme){
  }
  const underline=curveTube([new THREE.Vector3(-2.85,by,-.2),new THREE.Vector3(0,by-.065,-.2),new THREE.Vector3(2.85,by,-.2)],.016,gold);root.add(underline);
 }
+function roundedPlate(width,height,radius,depth,material){
+ const x=-width/2,y=-height/2;
+ const shape=new THREE.Shape();
+ shape.moveTo(x+radius,y);
+ shape.lineTo(x+width-radius,y);
+ shape.quadraticCurveTo(x+width,y,x+width,y+radius);
+ shape.lineTo(x+width,y+height-radius);
+ shape.quadraticCurveTo(x+width,y+height,x+width-radius,y+height);
+ shape.lineTo(x+radius,y+height);
+ shape.quadraticCurveTo(x,y+height,x,y+height-radius);
+ shape.lineTo(x,y+radius);
+ shape.quadraticCurveTo(x,y,x+radius,y);
+ const panel=mesh(new THREE.ExtrudeGeometry(shape,{
+  depth,steps:1,bevelEnabled:true,bevelSegments:2,
+  bevelSize:.016,bevelThickness:.014,curveSegments:6
+ }),material);
+ return panel;
+}
 function artistBadge(root,design,theme,font){
- const gold=physical(theme.metal,.68);
- const back=physical(theme.floor,.22);
- const plate=mesh(new THREE.BoxGeometry(2.75,.42,.09),back);
- plate.position.set(0,-1.60,3.77);root.add(plate);
- const edge=mesh(new THREE.BoxGeometry(2.84,.49,.028),gold);
- edge.position.set(0,-1.60,3.69);root.add(edge);
- plate.position.z=3.795;
- addText(root,design.artist||'ARTIST',font,.205,2.34,-1.60,3.84,0xffeccc,{depth:.018,bevel:.003,metalness:.30});
- for(const x of [-1.25,1.25]){
-   const screw=sphere(.042,gold);screw.position.set(x,-1.60,3.82);root.add(screw);
+ const gold=physical(theme.metal,.7);
+ const satin=physical(new THREE.Color(theme.floor).lerp(new THREE.Color('#302032'),.4),.22);
+ satin.roughness=.7;satin.sheen=.6;satin.sheenColor=new THREE.Color(theme.accent);
+ const frame=roundedPlate(2.90,.51,.13,.065,gold);
+ frame.position.set(0,-1.60,3.67);root.add(frame);
+ const inset=roundedPlate(2.74,.385,.10,.06,satin);
+ inset.position.set(0,-1.60,3.76);root.add(inset);
+ const inner=roundedPlate(2.66,.30,.085,.011,physical(theme.metal,.75));
+ inner.position.set(0,-1.60,3.816);inner.material.transparent=true;inner.material.opacity=.16;
+ root.add(inner);
+ addText(root,design.artist||'ARTIST',font,.203,2.30,-1.60,3.862,0xffefce,
+   {depth:.017,bevel:.004,metalness:.46,roughness:.29});
+ for(const x of [-1.28,1.28]){
+  const screw=sphere(.032,gold);screw.position.set(x,-1.60,3.857);root.add(screw);
  }
 }
 export function createLettering(root,design,theme,font){
@@ -112,10 +137,10 @@ export function createLettering(root,design,theme,font){
  const lines=splitTitle(design.title);
  const headline=lines[0]||'Happy Birthday';
  const second=lines[1]||'';
- const topWidth=7.0;
- addText(group,headline,font,.63,topWidth,2.86,.04,color,{depth:design.titleStyle==='engraved'?.022:.09,bevel:design.titleStyle==='sculpted'?.028:.012,metalness:design.textFinish==='gold'?.75:.42,roughness:design.titleStyle==='satin'?.6:.25,glow:design.titleStyle==='glowing'});
+ const topWidth=6.95;
+ addText(group,headline,font,.60,topWidth,2.88,.04,color,{depth:design.titleStyle==='engraved'?.022:.09,bevel:design.titleStyle==='sculpted'?.028:.012,metalness:design.textFinish==='gold'?.75:.42,roughness:design.titleStyle==='satin'?.6:.25,glow:design.titleStyle==='glowing'});
  if(second){
-  addText(group,second,font,.37,6.65,2.23,.09,design.textFinish==='gold'?0xffead2:color,{depth:.045,bevel:.012,metalness:.43,glow:design.titleStyle==='glowing'});
+  addText(group,second,font,.35,6.58,2.23,.09,design.textFinish==='gold'?0xffead2:color,{depth:.045,bevel:.012,metalness:.43,glow:design.titleStyle==='glowing'});
  }
  artistBadge(group,design,theme,font);
  // Lettering has a small periodic breathing motion, precisely equal at t=0 and t=1.
