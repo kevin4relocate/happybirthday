@@ -4,33 +4,28 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <meta name="theme-color" content="#0b090e">
- <meta name="description" content="Create an elegant, perfectly looping 10-second birthday video backdrop.">
- <title>Midnight Gala — Birthday Loop Studio</title>
+ <meta name="description" content="Internal birthday video loop generator.">
+ <title>Birthday Studio</title>
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
  <div class="app">
   <header class="top">
-   <a class="brand" href="./" aria-label="Midnight Gala Birthday Studio home">
+   <a class="brand" href="./" aria-label="Birthday Studio home">
     <span class="monogram">✦</span>
-    <span><b>MIDNIGHT GALA</b><small>BIRTHDAY LOOP STUDIO</small></span>
+    <span><b>Birthday Studio</b></span>
    </a>
-   <span class="edition">VOL. 01 <i></i> THE FLAGSHIP SCENE</span>
   </header>
   <main class="workspace">
    <section class="studio" aria-label="Create birthday video">
-    <p class="eyebrow">THE ART OF CELEBRATION <span>— 001</span></p>
-    <h1>Make the moment<br><em>last forever.</em></h1>
-    <p class="intro">A candlelit birthday story, thoughtfully composed. Enter your song, and we’ll make the scene yours.</p>
     <form id="creator-form" class="creator">
      <label for="song-title">SONG TITLE</label>
      <input id="song-title" type="text" maxlength="90" autocomplete="off" required value="Happy Birthday, Make a Wish" placeholder="Happy Birthday, Make a Wish">
      <label for="artist-name">ARTIST NAME</label>
      <input id="artist-name" type="text" maxlength="50" autocomplete="off" required value="Lucio Bruno" placeholder="Lucio Bruno">
-     <button id="generate" class="primary" type="submit"><span aria-hidden="true">✦</span> Generate your scene <span aria-hidden="true">→</span></button>
+     <button id="generate" class="primary" type="submit"><span aria-hidden="true">✦</span> Generate <span aria-hidden="true">→</span></button>
     </form>
-    <div class="rule"><span>YOUR FILM</span></div>
     <button class="download" id="download" type="button" disabled>
      <span class="download-icon" aria-hidden="true">↓</span>
      <span class="download-label"><b>Download seamless loop</b><small>10 seconds · 1920 × 1080 · WebM</small></span>
@@ -39,11 +34,10 @@
     <button class="cancel" id="cancel-export" type="button" hidden>Cancel export</button>
     <div class="progress" id="export-progress" hidden><div id="progress-bar"></div></div>
     <p class="status" id="status" role="status" aria-live="polite">Preparing your birthday scene…</p>
-    <p class="note">One crafted scene. No random plastic props. Your video is rendered locally without uploading your song.</p>
    </section>
    <section class="screen" aria-label="Preview">
     <div class="screen-head">
-     <div><p class="screen-eyebrow">THE PRIVATE PREVIEW</p><h2 id="stage-name">Happy Birthday, Make a Wish</h2></div>
+     <div><p class="screen-eyebrow">PREVIEW</p><h2 id="stage-name">Happy Birthday, Make a Wish</h2></div>
      <span class="live"><i></i> LIVE LOOP</span>
     </div>
     <div class="canvas-wrap" id="viewport">
@@ -52,13 +46,11 @@
      <div class="film-corner corner-left"></div><div class="film-corner corner-right"></div>
     </div>
     <div class="screen-foot">
-      <div class="spec"><span class="loop-mark">↺</span><span>10 SECOND PERFECT LOOP</span><span class="dot">•</span><span>300 FRAMES / 30 FPS</span></div>
+      <div class="spec"><span class="loop-mark">↺</span><span>10S LOOP</span><span class="dot">•</span><span>300 FRAMES / 30 FPS</span></div>
       <span id="scene-caption" class="scene-label">MIDNIGHT GALA</span>
     </div>
-    <p class="screen-aside">An editorial birthday still life, made to move just a little.</p>
    </section>
   </main>
-  <footer><span>© BIRTHDAY STUDIO · CREATED FOR THE MOMENT</span><span>AN ORIGINAL NEW BEGINNING · VOL. 01</span></footer>
  </div>
  <script type="module" src="./src/app.js"></script>
 </body>
