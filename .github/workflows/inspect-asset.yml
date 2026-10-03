@@ -1,0 +1,25 @@
+name: Inspect CC0 premium model source
+on:
+  push:
+    branches: [premium-scanned-hero-v3-20261003]
+    paths:
+      - scripts/inspect-cc0-model.mjs
+      - .github/workflows/inspect-asset.yml
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch official Poly Haven 1K glTF metadata and sample
+        run: node scripts/inspect-cc0-model.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: polyhaven-cake-source
+          path: tmp-polyhaven
+          if-no-files-found: ignore
