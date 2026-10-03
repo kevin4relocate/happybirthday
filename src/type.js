@@ -95,13 +95,13 @@ function artistBadge(root,design,theme,font){
  const gold=physical(theme.metal,.68);
  const back=physical(theme.floor,.22);
  const plate=mesh(new THREE.BoxGeometry(2.75,.42,.09),back);
- plate.position.set(0,-1.60,3.27);root.add(plate);
+ plate.position.set(0,-1.60,3.77);root.add(plate);
  const edge=mesh(new THREE.BoxGeometry(2.84,.49,.028),gold);
- edge.position.set(0,-1.60,3.20);root.add(edge);
- plate.position.z=3.295;
- addText(root,design.artist||'ARTIST',font,.205,2.34,-1.60,3.36,0xffeccc,{depth:.018,bevel:.003,metalness:.30});
+ edge.position.set(0,-1.60,3.69);root.add(edge);
+ plate.position.z=3.795;
+ addText(root,design.artist||'ARTIST',font,.205,2.34,-1.60,3.84,0xffeccc,{depth:.018,bevel:.003,metalness:.30});
  for(const x of [-1.25,1.25]){
-   const screw=sphere(.042,gold);screw.position.set(x,-1.60,3.35);root.add(screw);
+   const screw=sphere(.042,gold);screw.position.set(x,-1.60,3.82);root.add(screw);
  }
 }
 export function createLettering(root,design,theme,font){
