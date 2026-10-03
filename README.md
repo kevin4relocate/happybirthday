@@ -52,7 +52,7 @@ npm run validate
 
 ## Recording limitations
 
-Video encoding uses `HTMLCanvasElement.captureStream` + `MediaRecorder` on the user's device. Output is silent (add the song in your video editor). For maximum recording stability keep the tab visible and do not put the computer to sleep. Recording is real-time and browser-paced: frame rate and exact encoded duration depend on the device. The animation positions match at loop phase 0 and 1, but the browser encoder itself does not guarantee a mathematically perfect frame seam.
+Video encoding uses `HTMLCanvasElement.captureStream` + `MediaRecorder` on the user's device. Output is silent (add the song in your video editor). For maximum recording stability keep the tab visible and do not put the computer to sleep. When WebCodecs is available, the renderer encodes every frame with explicit timestamps and muxes a deterministic-length WebM, so slow devices may take considerably longer than ten seconds to finish. Older browsers fall back to real-time MediaRecorder, which can drop frames under load. The animation positions match at loop phase 0 and 1; encoded seam quality should still be checked in a video editor.
 
 ## Architecture
 
@@ -61,6 +61,7 @@ Video encoding uses `HTMLCanvasElement.captureStream` + `MediaRecorder` on the u
 - `src/type.js` — physical extruded 3D title and stand-mounted artist label
 - `src/scene.js` — lifecycle, lighting, camera, renderer, GPU disposal
 - `src/export.js` — browser recording, cancellation, progress, download
+- `src/webm.js` — timestamp-preserving WebM muxer for WebCodecs video chunks
 - `src/app.js` — one-click user interface
 - `tests/` — deterministic generation and contract tests
 - `docs/` — asset pipeline and product acceptance criteria
