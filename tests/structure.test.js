@@ -18,12 +18,13 @@ test('3D text is scene-mounted, not HTML text on top of the canvas',()=>{
  assert.match(src,/artistBadge\(group/);
  assert.match(src,/splitTitle\(design\.title\)/);
 });
-test('recording uses deterministic loop phases and cleans up the stream',()=>{
+test('recording uses exact frame timestamps and refuses realtime dropped-frame fallbacks',()=>{
  const src=read('../src/export.js');
- assert.match(src,/captureStream\(EXPORT_FPS\)/);
- assert.match(src,/engine\.draw\(0\)/);
- assert.match(src,/getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
- assert.match(src,/signal\?\.addEventListener\('abort'/);
+ assert.match(src,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
+ assert.match(src,/loopFramePhase\(i,total\)/);
+ assert.match(src,/frameTimestampUs\(i,profile\.fps\)/);
+ assert.doesNotMatch(src,/\.captureStream\(/);
+ assert.doesNotMatch(src,/new MediaRecorder\(/);
 });
 test('all 6 scene configurations are referenced through shared builder',()=>{
  const src=read('../src/scene.js');

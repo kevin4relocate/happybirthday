@@ -12,14 +12,14 @@ Only two inputs (song title and artist), **Generate**, autoplay 3D preview, **Do
 - [x] Candle flames, balloons and decorative particles with periodic deterministic movement.
 - [x] Two-line headline splitting, text as an object in the world and pedestal artist badge.
 - [x] Browser-local history keeping 3,000 structural fingerprints; seed alone does not count as difference.
-- [x] Frame-by-frame, timestamped WebCodecs recording (when available), with real-time MediaRecorder fallback, progress, cancellation and cleanup.
+- [x] Frame-by-frame, timestamped WebCodecs export with a byte-identical first/last compressed keyframe; progress, cancellation and cleanup. No unreliable realtime fallback.
 - [x] Pure Node.js tests and CI workflow.
 
 ## Release blockers for a truly cinematic / large-scale product
 
 - [ ] Hand-authored premium Blender/GLB scene library and asset licensing checks.
 - [ ] Browser screenshots and visual QA across Chrome, Edge and Safari on representative GPUs.
-- [ ] Actual 1080p recording validation: playability, file duration, audio expectations and loop-seam comparison.
+- [ ] Actual 1080p recording validation on real user hardware; CI covers 10-second, 30-fps reduced-resolution file decoding and first/last pixel equality.
 - [ ] Content visual similarity checks: fingerprint uniqueness alone cannot ensure 1,000 visually different videos.
 - [ ] Visual legibility tests for extremely long/multilingual song titles.
 - [ ] Optional background batch export with an offline/worker or server-side video encoder to handle hundreds of videos reliably.

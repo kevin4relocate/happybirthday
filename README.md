@@ -5,7 +5,7 @@ Standalone browser-based 3D birthday loop generator. This new repository does **
 ## What you can do now
 1. Open the static website and enter a song title and artist.
 2. Select **Generate new scene**. The scene, candles, materials, balloons, lighting and typography are chosen automatically.
-3. Preview a moving 3D scene and click **Download loop** to record a 10-second silent, 1920×1080 video in WebM (or MP4 when supported by the browser).
+3. Preview a moving 3D scene and click **Download loop** to record a 10-second silent, 1920×1080 video in WebM with verified matching first and last encoded keyframes.
 4. Generate again for another layout. A browser-local record of the last 3,000 structural fingerprints helps reduce repetition.
 
 The phrase **Happy Birthday** is prioritized on the first line, with the remainder of the title on a smaller second line. The 3D text is mounted inside the scene and the artist is displayed on the cake stand.
@@ -52,7 +52,9 @@ npm run validate
 
 ## Recording limitations
 
-Video encoding uses `HTMLCanvasElement.captureStream` + `MediaRecorder` on the user's device. Output is silent (add the song in your video editor). For maximum recording stability keep the tab visible and do not put the computer to sleep. When WebCodecs is available, the renderer encodes every frame with explicit timestamps and muxes a deterministic-length WebM, so slow devices may take considerably longer than ten seconds to finish. Older browsers fall back to real-time MediaRecorder, which can drop frames under load. The animation positions match at loop phase 0 and 1; encoded seam quality should still be checked in a video editor.
+**Loop contract:** A 10-second, 30-fps file contains exactly 300 frame slots. Slots 0–298 are encoded with WebCodecs and explicit timestamps. Slot 299 holds a **byte-identical copy of the first compressed keyframe**, not a second lossy re-encode, guaranteeing identical first/last decoded pixels with a conforming VP8/VP9 decoder. A repeated loop intentionally holds that exact boundary image for one frame interval (33 ms). Repeat the ten-second clip 18 times on a 30-fps editing timeline to cover three minutes.
+
+The downloaded file is a **silent WebM**; add the original song using your video editor. There is no realtime MediaRecorder fallback because dropped frames can break the requested exact loop guarantee. Use a current desktop Chrome/Edge with WebCodecs encoding; slower devices may take much longer than 10 seconds to render. Re-encoding or frame-rate conversion in an editor may introduce artifacts. Preserve 30 fps and avoid transitions/speed changes if you need the source seam unchanged.
 
 ## Architecture
 
@@ -62,6 +64,7 @@ Video encoding uses `HTMLCanvasElement.captureStream` + `MediaRecorder` on the u
 - `src/scene.js` — lifecycle, lighting, camera, renderer, GPU disposal
 - `src/export.js` — browser recording, cancellation, progress, download
 - `src/webm.js` — timestamp-preserving WebM muxer for WebCodecs video chunks
+- `src/loop.js` — exact-frame-count timing and first/last keyframe cloning contract
 - `src/app.js` — one-click user interface
 - `tests/` — deterministic generation and contract tests
 - `docs/` — asset pipeline and product acceptance criteria

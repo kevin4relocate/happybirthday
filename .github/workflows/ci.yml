@@ -15,7 +15,7 @@ jobs:
 
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,7 +25,13 @@ jobs:
         run: npm install --no-save puppeteer-core@24.13.0
       - name: Check browser installation
         run: google-chrome --version
-      - name: Render WebGL preview and record 10-second video
+      - name: Install and verify FFmpeg video decoders
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
+      - name: Render WebGL scene and verify exact 300-frame video seam
         run: node tests/browser-smoke.mjs
         env:
           CHROME_BIN: /usr/bin/google-chrome
