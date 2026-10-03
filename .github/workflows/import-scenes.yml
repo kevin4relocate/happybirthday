@@ -25,6 +25,8 @@ jobs:
           git add assets/rose-garden.jpg assets/golden-ballroom-cake.jpg assets/golden-ballroom-hall.jpg assets/SCENE_CREDITS.json
           if ! git diff --cached --quiet; then
             git commit -m "asset: add licensed Rose Garden and Golden Ballroom photo library"
+            git fetch origin v4-cinematic-scenes-20261003
+            git rebase origin/v4-cinematic-scenes-20261003
             git push origin HEAD:v4-cinematic-scenes-20261003
           fi
       - uses: actions/upload-artifact@v4
