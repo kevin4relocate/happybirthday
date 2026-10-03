@@ -58,6 +58,17 @@ try{
     };
   });
   await page.evaluate(()=>{window.__BIRTHDAY_CI_EXPORT_PROFILE={width:640,height:360,fps:12,durationSeconds:2}});
+  const codecSupport=await page.evaluate(async()=>{
+    const available=typeof VideoEncoder!=='undefined'&&typeof VideoFrame!=='undefined';
+    if(!available)return {available:false};
+    const results=[];
+    for(const codec of ['vp09.00.10.08','vp8']){
+      try{const c=await VideoEncoder.isConfigSupported({codec,width:640,height:360,bitrate:8000000,framerate:12,latencyMode:'quality'});results.push({codec,supported:c.supported})}
+      catch(e){results.push({codec,error:e.message})}
+    }
+    return {available,results};
+  });
+  console.log('WEB_CODECS_CAPABILITY '+JSON.stringify(codecSupport));
   await page.click('#download');
   await page.waitForFunction(()=>window.__capturedVideo?.size>0,{timeout:90000});
   const video=await page.evaluate(()=>window.__capturedVideo);
@@ -71,6 +82,18 @@ try{
   }
   assert.ok(video.size>1000,'Recorded video is empty or invalid');
   assert.match(video.type,/video\/(webm|mp4)/);
+  const videoMetadata=await page.evaluate(async()=>{
+    const v=document.createElement('video');v.preload='metadata';v.src=URL.createObjectURL(window.__capturedBlob);
+    return await new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>reject(new Error('Video metadata timeout')),12000);
+      v.onloadedmetadata=()=>{clearTimeout(timeout);resolve({duration:v.duration,width:v.videoWidth,height:v.videoHeight})};
+      v.onerror=()=>{clearTimeout(timeout);reject(new Error('Video cannot be decoded'))};
+    });
+  });
+  console.log('WEB_CODECS_VIDEO_METADATA '+JSON.stringify(videoMetadata));
+  assert.equal(videoMetadata.width,640,'WebCodecs must honor fixture resolution');
+  assert.equal(videoMetadata.height,360);
+  assert.ok(Math.abs(videoMetadata.duration-2)<.2,'Encoded duration mismatch: '+videoMetadata.duration);
   assert.deepEqual(pageErrors,[], 'Browser JavaScript errors');
   console.log('BROWSER_SMOKE_PASS '+JSON.stringify({first:initial.scene,second,width:initial.width,height:initial.height,encodedBytes:video.size,mime:video.type}));
 }finally{
