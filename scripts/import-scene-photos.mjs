@@ -1,55 +1,36 @@
 /**
- * One-shot source-licensed Unsplash image importer (only for this branch).
- * Images are copied into this repository; runtime makes no Unsplash requests.
- * Sources were verified as free Unsplash photos, NOT Unsplash+.
+ * One-time archival of three explicitly sourced Pexels photos.
+ * Runtime only loads local /assets files; this script runs during repository setup.
+ * Each source page was checked as a free Pexels photo, NOT a premium item.
  */
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 const photos=[
- {scene:'rose-garden',file:'rose-garden.jpg',
-  photo:'https://unsplash.com/photos/white-and-pink-cake-with-pink-flower-accent-sjsG1yrwJxY',
-  photographer:'Deva Williamson',sourceId:'sjsG1yrwJxY'},
- {scene:'golden-ballroom',file:'golden-ballroom-cake.jpg',
-  photo:'https://unsplash.com/photos/a-white-cake-with-a-gold-ribbon-wNd3G1OStQY',
-  photographer:'Soulseeker - Creative Photography',sourceId:'wNd3G1OStQY'},
- {scene:'golden-ballroom',file:'golden-ballroom-hall.jpg',
-  photo:'https://unsplash.com/photos/a-banquet-hall-with-chandeliers-and-tables-iXTkKQyVqbM',
-  photographer:'ISKRA Photography',sourceId:'iXTkKQyVqbM'}
+ {scene:'rose-garden',file:'rose-garden.jpg',id:34833097,
+  photo:'https://www.pexels.com/photo/elegant-pink-birthday-cake-with-floral-decor-34833097/',
+  photographer:'aryapandusedjati .'},
+ {scene:'golden-ballroom',file:'golden-ballroom-cake.jpg',id:34596958,
+  photo:'https://www.pexels.com/photo/elegant-white-wedding-cake-with-gold-stand-34596958/',
+  photographer:'Caleb Oquendo'},
+ {scene:'golden-ballroom',file:'golden-ballroom-hall.jpg',id:33852468,
+  photo:'https://www.pexels.com/photo/luxurious-wedding-banquet-hall-with-chandeliers-33852468/',
+  photographer:'Raj'}
 ];
-async function downloadImage(photo){
- const response=await fetch(photo.photo,{
-  headers:{'User-Agent':'Mozilla/5.0 (compatible; BirthdayStudioAssetArchiver/1.0)','Accept':'text/html'}});
- if(!response.ok)throw Error('Source photo page HTTP '+response.status+' '+photo.photo);
- const html=await response.text();
- const metaTags=[...html.matchAll(/<meta\b[^>]*>/gi)].map(x=>x[0]);
- let cdn=null;
- for(const tag of metaTags){
-  if(!/property=["']og:image["']|name=["']twitter:image["']/i.test(tag))continue;
-  const raw=tag.match(/content=["']([^"']+)["']/i)?.[1]?.replaceAll('&amp;','&');
-  if(raw&&/^https:\/\/images\.unsplash\.com\/photo-/.test(raw)){cdn=raw;break}
- }
- if(!cdn){
-  const match=html.match(/https:\\?\/\\?\/images\.unsplash\.com\\?\/photo-[\w%-]+/);
-  if(match)cdn=match[0].replaceAll('\\/','/');
- }
- if(!cdn)throw Error('Missing official Unsplash photo CDN address for '+photo.sourceId);
- const url=new URL(cdn);if(url.hostname!=='images.unsplash.com')throw Error('Invalid source host');
- url.search='?auto=format&fit=crop&w=2400&q=86&fm=jpg';
- const file=await fetch(url,{headers:{'User-Agent':'BirthdayStudioAssetArchiver/1.0'}});
- if(!file.ok)throw Error('Image fetch HTTP '+file.status+' '+url);
- const bytes=Buffer.from(await file.arrayBuffer());
- if(bytes.length<45000||bytes.length>9000000||bytes[0]!==0xff||bytes[1]!==0xd8)
-  throw Error('Invalid JPEG payload '+photo.file+' bytes='+bytes.length);
+const manifests=[];
+for(const source of photos){
+ const url='https://images.pexels.com/photos/'+source.id+'/pexels-photo-'+source.id+'.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85';
+ const response=await fetch(url,{headers:{'User-Agent':'BirthdayStudio/1.0','Accept':'image/jpeg'}});
+ if(!response.ok)throw Error('Pexels CDN '+response.status+' '+source.file);
+ const bytes=Buffer.from(await response.arrayBuffer());
+ if(bytes.length<50000||bytes.length>9000000||bytes[0]!==255||bytes[1]!==216)
+   throw Error('Bad JPEG '+source.file+' bytes '+bytes.length);
  await fs.mkdir('assets',{recursive:true});
- await fs.writeFile('assets/'+photo.file,bytes);
- return {...photo,license:'Unsplash License',
-  licenseUrl:'https://unsplash.com/license',
-  url:url.href,bytes:bytes.length,
-  sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
+ await fs.writeFile('assets/'+source.file,bytes);
+ manifests.push({scene:source.scene,file:source.file,photographer:source.photographer,
+  sourcePage:source.photo,license:'Pexels License',licenseUrl:'https://www.pexels.com/license/',
+  cdnUrl:url,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')});
 }
-const manifest=[];
-for(const photo of photos)manifest.push(await downloadImage(photo));
-await fs.writeFile('assets/SCENE_CREDITS.json',JSON.stringify(manifest,null,2)+'\n');
-console.log('SCENE_ASSETS_IMPORTED '+JSON.stringify(manifest.map(x=>({
- file:x.file,photographer:x.photographer,bytes:x.bytes,sha256:x.sha256
+await fs.writeFile('assets/SCENE_CREDITS.json',JSON.stringify(manifests,null,2)+'\n');
+console.log('SCENE_ASSETS_IMPORTED '+JSON.stringify(manifests.map(x=>({
+  file:x.file,photographer:x.photographer,bytes:x.bytes,sha256:x.sha256
 }))));
