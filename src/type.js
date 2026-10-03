@@ -46,6 +46,7 @@ function addText(root,text,font,size,maxWidth,y,z,color,options={}){
  if(!Number.isFinite(width)||width===0){geo.dispose();return canvasText(root,text,size,maxWidth,y,z,color,options)}
  geo.translate(-width/2,-height/2,0);
  const material=physical(color,options.metalness??.58);
+ if(options.roughness!==undefined)material.roughness=options.roughness;
  if(options.glow){material.emissive=new THREE.Color(color);material.emissiveIntensity=.19}
  const obj=mesh(geo,material);
  obj.scale.setScalar(Math.min(1,maxWidth/width));
@@ -112,7 +113,7 @@ export function createLettering(root,design,theme,font){
  const headline=lines[0]||'Happy Birthday';
  const second=lines[1]||'';
  const topWidth=7.0;
- addText(group,headline,font,.63,topWidth,2.86,.04,color,{depth:.09,bevel:.018,metalness:design.textFinish==='gold'?.75:.42,glow:design.titleStyle==='glowing'});
+ addText(group,headline,font,.63,topWidth,2.86,.04,color,{depth:design.titleStyle==='engraved'?.022:.09,bevel:design.titleStyle==='sculpted'?.028:.012,metalness:design.textFinish==='gold'?.75:.42,roughness:design.titleStyle==='satin'?.6:.25,glow:design.titleStyle==='glowing'});
  if(second){
   addText(group,second,font,.37,6.65,2.23,.09,design.textFinish==='gold'?0xffead2:color,{depth:.045,bevel:.012,metalness:.43,glow:design.titleStyle==='glowing'});
  }
