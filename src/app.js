@@ -61,7 +61,9 @@ function generate(){
   ready=true;
   dom.download.disabled=false;
   start=performance.now();
-  dom.sceneName.textContent=({atelier:'Golden Atelier',pastel:'Strawberry Daydream',moonlit:'Moonlight Wishes',musicbox:'A Little Music Box',garden:'Birthday Garden',disco:'Midnight Party Lights'})[design.scene]||'Birthday celebration';
+  dom.sceneName.textContent=engine.premiumModel&&design.scene==='atelier'
+    ?'Pâtisserie — Scanned Cake'
+    :({atelier:'Golden Atelier',pastel:'Strawberry Daydream',moonlit:'Moonlight Wishes',musicbox:'A Little Music Box',garden:'Birthday Garden',disco:'Midnight Party Lights'})[design.scene]||'Birthday celebration';
   dom.headline.textContent=title;
   say('Your new 3D birthday scene is ready. Generate again for a different celebration.');
   dom.loading.hidden=true;
