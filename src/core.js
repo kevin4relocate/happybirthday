@@ -22,6 +22,7 @@ export const BANNERS=['arched','ribbon','beaded','star-garland'];
 export const TEXT_FINISHES=['gold','ivory','rose','silver','glass'];
 export const BALLOON_FINISHES=['pearl','metallic','matte','transparent'];
 export const TITLE_STYLES=['sculpted','engraved','glowing','satin'];
+export const CAMERA_VARIANTS=Object.freeze(['portrait','three-quarter-left','three-quarter-right','grand']);
 const isObject=o=>o!==null&&typeof o==='object';
 export function hashString(text){
   let h=2166136261;for(const ch of String(text)){h^=ch.codePointAt(0);h=Math.imul(h,16777619)}
@@ -84,12 +85,13 @@ export function chooseDesign(title,artist,history=[],rng=Math.random){
       arch:pick(BANNERS,rng),
       textFinish:pick(TEXT_FINISHES,rng),
       titleStyle:pick(TITLE_STYLES,rng),
-      lightVariation:intBetween(0,7,rng)
+      lightVariation:intBetween(0,7,rng),
+      cameraMood:pick(CAMERA_VARIANTS,rng)
     };
     // No seed in structural fingerprint: random position changes alone must not count as a new design.
     const signature=[design.scene,design.cakeStyle,design.finish,design.decorations,design.accentVariant,
       design.candleCount,design.candlePalette,design.cakeScale,design.balloonCount,design.balloonFinish,
-      design.giftCount,design.arch,design.textFinish,design.titleStyle,design.lightVariation].join('|');
+      design.giftCount,design.arch,design.textFinish,design.titleStyle,design.lightVariation,design.cameraMood].join('|');
     if(fingerprints.has(signature))continue;
     design.signature=signature;
     return design;
