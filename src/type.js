@@ -36,7 +36,7 @@ function curveTube(points,rad,material){
  const curve=new THREE.CatmullRomCurve3(points);
  return mesh(new THREE.TubeGeometry(curve,44,rad,7,false),material);
 }
-function addText(root,text,font,size,maxWidth,y,z,color,options={}){
+export function addText(root,text,font,size,maxWidth,y,z,color,options={}){
  const needsFallback=!font||/[^\u0020-\u007e]/u.test(text);
  if(needsFallback)return canvasText(root,text,size,maxWidth,y,z,color,options);
  const geo=new TextGeometry(text,{font,size,depth:options.depth??.052,curveSegments:8,bevelEnabled:true,bevelThickness:options.bevel??.013,bevelSize:options.bevel??.012,bevelSegments:2});
