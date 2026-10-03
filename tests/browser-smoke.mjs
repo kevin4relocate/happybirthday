@@ -45,6 +45,7 @@ try{
   }));
   assert.ok(initial.width>=500&&initial.height>=250,'WebGL canvas has unexpected dimensions');
   assert.match(initial.title,/Happy Birthday/);
+  assert.match(initial.scene,/Scanned Cake/,'First scene must show the new CC0 scanned cake hero');
   fs.mkdirSync(path.join(root,'test-output'),{recursive:true});
   await page.screenshot({path:path.join(root,'test-output','birthday-v2-desktop.png'),fullPage:true});
   await page.click('#generate');
