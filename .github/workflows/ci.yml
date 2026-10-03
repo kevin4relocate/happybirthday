@@ -1,0 +1,37 @@
+name: Birthday Studio checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run validate
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install isolated browser test dependency
+        run: npm install --no-save puppeteer-core@24.13.0
+      - name: Check browser installation
+        run: google-chrome --version
+      - name: Render WebGL preview and record 10-second video
+        run: node tests/browser-smoke.mjs
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: birthday-v2-browser-preview
+          path: test-output/*
+          if-no-files-found: ignore

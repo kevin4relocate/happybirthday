@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171123">
+  <meta name="description" content="Create elegant, seamless 3D birthday video loops in one click.">
+  <title>Happy Birthday — 3D Loop Studio</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <header class="site-header">
+      <a href="./" class="brand" aria-label="Birthday Studio home"><span class="brand-symbol" aria-hidden="true">✳</span><span>birthday<span class="brand-light">studio</span><small>THE 3D LOOP MAKER</small></span></a>
+      <div class="header-right"><span class="header-dot"></span> MADE FOR THE MOMENT</div>
+    </header>
+    <main class="layout">
+      <section class="create-panel" aria-label="Birthday video creator">
+        <div class="edition"><span class="edition-star">✦</span> STUDIO V2 <span class="edition-line"></span> AUTOMATIC 3D</div>
+        <h1>Every birthday<br>deserves a <em>little magic.</em></h1>
+        <p class="intro">One song. A whole new celebration.<br>We’ll handle the scene, lighting, and every little detail.</p>
+        <form id="creator-form" class="form" autocomplete="off">
+          <label for="song-title">SONG TITLE</label>
+          <input id="song-title" name="song" type="text" maxlength="90" placeholder="Happy Birthday, Make a Wish" value="Happy Birthday, Make a Wish" required>
+          <label for="artist-name">ARTIST NAME</label>
+          <input id="artist-name" name="artist" type="text" maxlength="50" placeholder="Lucio Bruno" value="Lucio Bruno" required>
+          <button id="generate" class="primary-button" type="submit"><span class="button-glyph">✦</span> Generate new scene <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="panel-divider"><span>A LITTLE SOMETHING SPECIAL</span></div>
+        <p class="helper">Every click creates a new 3D arrangement with its own cake, candles, materials and gentle motion. Your original scene stays in the preview until you regenerate.</p>
+        <div class="actions">
+          <button id="download" class="download-button" type="button" disabled><span aria-hidden="true">↓</span><span><strong>Download loop</strong><small id="format-label">10 seconds · 1080p · video only</small></span><span class="action-chevron" aria-hidden="true">↗</span></button>
+          <button id="cancel-export" class="cancel-button" type="button" hidden>Cancel export</button>
+          <div class="progress" id="export-progress" hidden><div id="progress-bar"></div></div>
+        </div>
+        <p id="status" role="status" aria-live="polite" class="status">Preparing your birthday studio…</p>
+        <div class="privacy"><span aria-hidden="true">◈</span> Rendered locally in your browser. No uploads.</div>
+      </section>
+      <section class="stage-panel" aria-label="3D birthday video preview">
+        <div class="stage-header">
+          <div><span class="overline">YOUR PERSONAL CELEBRATION</span><h2 id="stage-name">A moment worth remembering</h2></div>
+          <span class="live-badge"><span class="live-indicator"></span> LIVE 3D</span>
+        </div>
+        <div id="viewport" class="viewport" aria-label="Animated 3D birthday scene"><canvas id="stage" aria-label="3D birthday animation canvas"></canvas><div class="stage-loading" id="stage-loading"><span class="loader-symbol">✦</span><strong>Creating a little magic…</strong><span>Loading the 3D studio</span></div></div>
+        <div class="stage-footer">
+          <div class="stage-info"><span class="loop-icon" aria-hidden="true">↺</span><span>SEAMLESS 10S LOOP</span><i></i><span>1920 × 1080 EXPORT</span></div>
+          <div id="scene-caption" class="scene-caption">Premium birthday world</div>
+        </div>
+        <div class="stage-note">✧ &nbsp; Glow, movement and memories — all part of the scene.</div>
+      </section>
+    </main>
+    <footer class="site-footer"><span>HAPPY BIRTHDAY STUDIO &nbsp; / &nbsp; MADE WITH A LITTLE WONDER</span><span>01 — CREATE &nbsp;·&nbsp; 02 — PREVIEW &nbsp;·&nbsp; 03 — DOWNLOAD</span></footer>
+  </div>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

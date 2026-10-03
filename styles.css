@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+:root{font-family:"DM Sans",Arial,sans-serif;color:#f7f0e8;background:#171123;font-synthesis:none}
+*{box-sizing:border-box}
+html{min-height:100%;background:#171123}body{margin:0;min-height:100vh;background:radial-gradient(ellipse 60% 72% at 86% 28%,#36213c 0%,transparent 72%),#171123}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #f1ca85;outline-offset:3px}
+.shell{max-width:1600px;margin:0 auto;min-height:100vh;padding:0 clamp(16px,3.3vw,60px);display:flex;flex-direction:column}
+.site-header{min-height:90px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff18}
+.brand{color:#fff5e6;text-decoration:none;display:flex;align-items:center;gap:13px;font-weight:700;letter-spacing:-.05em;font-size:24px;line-height:1}
+.brand-symbol{display:grid;place-items:center;height:42px;width:42px;border-radius:13px;background:linear-gradient(145deg,#ecc385,#af7888);color:#3d1d35;font-size:27px;box-shadow:0 4px 25px #eea56933}
+.brand-light{font-weight:400;color:#d9aeab}.brand small{font-size:9px;display:block;letter-spacing:.27em;color:#bdaebf;font-weight:600;margin-top:7px}
+.header-right{font-size:10px;letter-spacing:.2em;font-weight:700;color:#d0b8c4;display:flex;align-items:center;gap:9px}
+.header-dot,.live-indicator{height:7px;width:7px;background:#e6c88c;border-radius:50%;box-shadow:0 0 12px #d2a96c}
+.layout{display:grid;grid-template-columns:minmax(285px,380px) minmax(0,1fr);gap:clamp(20px,3.6vw,60px);padding:clamp(22px,3vw,48px) 0 20px;flex:1;align-items:start}
+.create-panel{padding:clamp(7px,1.4vw,20px) 0 4px}.edition,.overline{letter-spacing:.2em;font-size:10px;font-weight:700;color:#e4c293;display:flex;gap:12px;align-items:center}
+.edition-star{color:#f5d8ae;font-size:18px}.edition-line{height:1px;flex:1;max-width:48px;background:#c09c9a}
+h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(36px,3.35vw,52px);line-height:1.18;letter-spacing:-.055em;margin:25px 0 19px;font-weight:500;color:#f9f0e8}
+h1 em{color:#e5bc92;font-weight:500}.intro{font-size:14px;color:#bbafbd;line-height:1.85;margin:0 0 28px}
+.form{display:flex;flex-direction:column;gap:11px}.form label{color:#d5c2c6;letter-spacing:.13em;font-size:10px;font-weight:700;margin:7px 0 0}
+.form input{height:52px;background:#251d31;border:1px solid #524357;border-radius:9px;color:#f8f1e9;font-size:14px;padding:0 16px;width:100%;box-shadow:inset 0 1px 4px #08060b25}
+.form input::placeholder{color:#827787}.form input:focus{border-color:#e3be89;outline:2px solid #e3be8933}
+.primary-button{border:0;border-radius:10px;min-height:57px;margin-top:13px;color:#3c2431;background:linear-gradient(110deg,#f6d7a5,#eaa3ad);font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 17px;box-shadow:0 12px 38px #e7aa9825;transition:transform .17s,filter .17s}
+.primary-button:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.07)}.primary-button:disabled{opacity:.55;cursor:wait}.button-glyph{font-size:22px;line-height:1}
+.panel-divider{margin:29px 0 16px;display:flex;align-items:center;gap:12px;color:#a39baa;font-size:9px;letter-spacing:.18em;font-weight:700;white-space:nowrap}
+.panel-divider:before,.panel-divider:after{content:"";height:1px;background:#6252666b;flex:1}
+.helper{font-size:12px;line-height:1.85;color:#a99eaf;margin:0 0 17px}.actions{display:flex;flex-direction:column;gap:10px}
+.download-button{width:100%;padding:12px 14px;min-height:70px;border-radius:10px;background:#292336;border:1px solid #6e5c68;color:#faf1e7;display:flex;gap:13px;align-items:center;text-align:left;transition:border-color .2s,background .2s}
+.download-button>span:first-child{border:1px solid #826f7d;border-radius:9px;display:grid;place-items:center;height:38px;width:38px;font-size:23px;color:#ecd0ae}
+.download-button strong{font-size:14px;display:block}.download-button small{font-size:10px;color:#beb0bc;margin-top:5px;display:block}.action-chevron{margin-left:auto;font-size:21px;color:#d7b99d}
+.download-button:hover:not(:disabled){border-color:#e9c898;background:#36293d}.download-button:disabled{opacity:.42;cursor:not-allowed}
+.cancel-button{background:none;border:1px solid #8c7176;border-radius:8px;color:#edc4c5;padding:9px}
+.progress{height:5px;background:#4c384f;border-radius:10px;overflow:hidden}.progress>div{height:100%;width:0%;background:linear-gradient(90deg,#f3cd8d,#ec9ea7);transition:width .2s}
+.status{font-size:12px;min-height:26px;margin:14px 0 0;color:#d9c6ad;line-height:1.6}.status[data-error="true"]{color:#ffb7ad}
+.privacy{font-size:10px;color:#8e8698;display:flex;gap:9px;margin-top:20px}
+.stage-panel{min-width:0;align-self:start;display:flex;flex-direction:column;background:linear-gradient(180deg,#2c223a,#241a31);border:1px solid #69506994;border-radius:19px;padding:clamp(14px,2.2vw,29px);box-shadow:0 24px 70px #07040a54}
+.stage-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:19px}.stage-header h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(18px,1.9vw,27px);font-weight:500;letter-spacing:-.025em;margin:8px 0 0;overflow-wrap:anywhere}
+.live-badge{white-space:nowrap;font-size:10px;letter-spacing:.12em;display:flex;align-items:center;gap:8px;color:#d9c6c5;background:#ffffff0b;border:1px solid #ffffff22;padding:10px;border-radius:100px}
+.live-indicator{height:6px;width:6px;background:#b5c9a0;box-shadow:0 0 8px #a4cc9b}
+.viewport{aspect-ratio:16 / 9;width:100%;position:relative;border-radius:13px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#574152,#201629);border:1px solid #b58e9a44;box-shadow:inset 0 0 46px #140e2166,0 25px 55px #130c1c60}
+.viewport canvas{display:block;width:100%;height:100%;object-fit:contain}
+.stage-loading{position:absolute;inset:0;display:flex;flex-direction:column;gap:9px;justify-content:center;align-items:center;color:#ead2be;background:radial-gradient(circle at 50% 55%,#4b354c,#1b1428);font-size:12px}
+.stage-loading strong{font-family:"Playfair Display",Georgia,serif;font-size:22px;font-weight:500;color:#f0dfd0}
+.loader-symbol{font-size:54px;color:#edd19f;animation:pulse 3s ease-in-out infinite}@keyframes pulse{50%{opacity:.55;transform:scale(.92)}}
+.stage-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:19px}
+.stage-info{display:flex;align-items:center;gap:11px;color:#c7b3bd;font-size:9px;font-weight:700;letter-spacing:.12em;white-space:nowrap}.stage-info i{display:block;height:3px;width:3px;border-radius:50%;background:#b6a5b2}.loop-icon{color:#edc38e;font-size:23px}.scene-caption{color:#e7c49f;font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:15px;text-align:right}
+.stage-note{margin-top:0;padding-top:18px;color:#b4a0b1;font-size:11px;text-align:center}
+.site-footer{min-height:47px;display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #ffffff14;color:#9e91a7;font-size:9px;letter-spacing:.12em;font-weight:600}
+[hidden]{display:none!important}
+@media(max-width:1100px){.layout{grid-template-columns:minmax(270px,310px) minmax(0,1fr);gap:20px}.stage-panel{padding:16px}.stage-info{gap:7px;font-size:8px}.stage-header h2{font-size:18px}}
+@media(max-width:850px){.layout{display:flex;flex-direction:column;gap:23px}.stage-panel{width:100%;order:-1;min-height:0}.create-panel{width:100%;max-width:640px;margin:auto}.site-header{min-height:74px}.stage-note{padding-top:12px}.site-footer{font-size:8px}}
+@media(max-width:510px){.shell{padding:0 12px}.brand{font-size:21px}.header-right{display:none}.layout{padding-top:13px}.stage-panel{padding:10px;border-radius:12px}.stage-header{gap:5px;margin-bottom:10px}.overline{font-size:8px}.stage-header h2{font-size:17px}.live-badge{font-size:8px;padding:7px}.stage-footer{margin-top:10px}.scene-caption{font-size:12px}.stage-info{font-size:7px;gap:5px;letter-spacing:0}.stage-note{display:none}.create-panel{padding:3px 4px}h1{font-size:39px}.site-footer span:last-child{display:none}}
+@media(prefers-reduced-motion:reduce){.loader-symbol{animation:none}.primary-button,.download-button,.progress>div{transition:none}}
