@@ -2,6 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=x=>readFileSync(new URL(x,import.meta.url),'utf8');
+test('a photo-scanned hero loads locally from a documented and licensed GLB',()=>{
+ const app=read('../src/app.js');
+ const premium=read('../src/premium-hero.js');
+ const provenance=JSON.parse(read('../assets/models/PROVENANCE.json'));
+ assert.match(app,/loadPremiumCake\(\)/);
+ assert.match(app,/setPremiumModel\(model\)/);
+ assert.match(premium,/new GLTFLoader\(\)/);
+ assert.match(premium,/\.\/assets\/models\/strawberry-chocolate-cake-1k\.glb/);
+ assert.equal(provenance.license,'CC0 1.0 Public Domain');
+ assert.match(provenance.source,/^https:\/\/polyhaven\.com\/a\//);
+});
 test('homepage has only two user-editable fields and generation/download actions',()=>{
  const html=read('../index.html');
  assert.match(html,/id="song-title"/);

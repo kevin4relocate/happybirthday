@@ -2,6 +2,7 @@ import {chooseDesign,DesignHistory,DURATION_SECONDS} from './core.js';
 import {BirthdayScene} from './scene.js';
 import {loadFont} from './type.js';
 import {recordLoop,saveVideo} from './export.js';
+import {loadPremiumCake} from './premium-hero.js';
 
 const dom={
  form:document.getElementById('creator-form'),
@@ -23,6 +24,7 @@ const dom={
 const history=new DesignHistory(globalThis.localStorage);
 let engine=null,font=null,design=null,abortController=null,recording=false,ready=false;
 let raf=0,start=0,lastRender=-1;
+let firstGeneration=true;
 function say(message,error=false){dom.status.textContent=message;dom.status.dataset.error=String(error)}
 function cleanInputs(){return {title:dom.song.value.trim(),artist:dom.artist.value.trim()}}
 function busy(on){recording=on;dom.generate.disabled=on;dom.song.disabled=on;dom.artist.disabled=on;dom.download.disabled=on||!ready;dom.cancel.hidden=!on;dom.progress.hidden=!on;if(!on)dom.bar.style.width='0%'}
@@ -45,13 +47,23 @@ function generate(){
  let candidate;
  try{
   candidate=chooseDesign(title,artist,history.records);
+  // The first scene is deliberately art-directed, rather than another low-poly
+  // random scene; subsequent clicks continue through the other set designs.
+  if(firstGeneration&&engine.premiumModel){
+    candidate.scene='atelier';
+    candidate.family='luxury';
+    candidate.signature='premium|'+candidate.signature;
+  }
   engine.setup(candidate,font);
+  firstGeneration=false;
   design=candidate;
   history.add(candidate);
   ready=true;
   dom.download.disabled=false;
   start=performance.now();
-  dom.sceneName.textContent=({atelier:'Golden Atelier',pastel:'Strawberry Daydream',moonlit:'Moonlight Wishes',musicbox:'A Little Music Box',garden:'Birthday Garden',disco:'Midnight Party Lights'})[design.scene]||'Birthday celebration';
+  dom.sceneName.textContent=engine.premiumModel&&design.scene==='atelier'
+    ?'Pâtisserie — Scanned Cake'
+    :({atelier:'Golden Atelier',pastel:'Strawberry Daydream',moonlit:'Moonlight Wishes',musicbox:'A Little Music Box',garden:'Birthday Garden',disco:'Midnight Party Lights'})[design.scene]||'Birthday celebration';
   dom.headline.textContent=title;
   say('Your new 3D birthday scene is ready. Generate again for a different celebration.');
   dom.loading.hidden=true;
@@ -98,6 +110,14 @@ async function init(){
   say('Preparing realistic candles, 3D lettering and lighting…');
   font=await loadFont();
   if(!font)say('Using scene-mounted lettering fallback. 3D scenes remain available.');
+  try{
+    const model=await loadPremiumCake();
+    engine.setPremiumModel(model);
+    say('Scanned 3D cake and studio lighting ready.');
+  }catch(error){
+    console.warn('Premium scanned cake could not load; procedural backup remains available',error);
+    say('Scanned cake unavailable. Using the procedural backup scene.');
+  }
   generate();
   if(ready)raf=requestAnimationFrame(frame);
  }catch(error){

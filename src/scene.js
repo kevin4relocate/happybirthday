@@ -4,6 +4,7 @@ import {makeBackdrop,makeStage,makeCake,makeBalloons,makeGifts,makeSceneDecor} f
 import {createLettering} from './type.js';
 import {cinematicProfile,cameraPose,lightingPalette} from './cinematic-profile.js';
 import {createAtmosphere} from './atmosphere.js';
+import {makePremiumHero} from './premium-hero.js';
 
 export class BirthdayScene {
  constructor(canvas,viewport){
@@ -22,6 +23,7 @@ export class BirthdayScene {
   this.scene=null;
   this.world=null;
   this.update=()=>{};
+  this.premiumModel=null;
   this.previewScale=Math.min(1.7,Math.max(1,window.devicePixelRatio||1));
   this.resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>this.resize()):null;
   this.resizeObserver?.observe(this.viewport);
@@ -36,6 +38,7 @@ export class BirthdayScene {
   this.camera.aspect=16/9;this.camera.updateProjectionMatrix();
   this.draw(this.lastPhase??0);
  }
+ setPremiumModel(model){this.premiumModel=model}
  setup(design,font){
   const theme=SCENES.find(x=>x.id===design.scene);
   if(!theme)throw new Error('Scene preset not found');
@@ -53,12 +56,24 @@ export class BirthdayScene {
   const root=new THREE.Group();scene.add(root);
   makeBackdrop(root,theme,design);
   const atmosphereUpdate=createAtmosphere(root,design,theme);
-  makeStage(root,theme,design);
-  const cakeUpdate=makeCake(root,design,theme);
-  const balloonsUpdate=makeBalloons(root,design,theme);
-  makeGifts(root,design,theme);
-  const decorationsUpdate=makeSceneDecor(root,design,theme);
-  const letteringUpdate=createLettering(root,design,theme,font);
+  const premium=design.scene==='atelier'&&this.premiumModel;
+  let callbacks;
+  if(premium){
+    const heroUpdate=makePremiumHero(root,design,theme,font,this.premiumModel);
+    callbacks=[heroUpdate,atmosphereUpdate];
+    this.camera.position.set(.16,1.2,10.18);
+    this.camera.fov=36;
+    this.camera.lookAt(0,.71,0);
+    this.camera.updateProjectionMatrix();
+  }else{
+    makeStage(root,theme,design);
+    const cakeUpdate=makeCake(root,design,theme);
+    const balloonsUpdate=makeBalloons(root,design,theme);
+    makeGifts(root,design,theme);
+    const decorationsUpdate=makeSceneDecor(root,design,theme);
+    const letteringUpdate=createLettering(root,design,theme,font);
+    callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
+  }
   const ambient=new THREE.HemisphereLight(0xffe6d7,0x273145,lighting.ambient);scene.add(ambient);
   const key=new THREE.DirectionalLight(lighting.key,lighting.keyPower);
   key.position.set(-3.2+(design.lightVariation%3)*.24,6.8,5.2);key.castShadow=true;
@@ -78,7 +93,6 @@ export class BirthdayScene {
   const silkRim=new THREE.DirectionalLight(theme.palette[1],1.35);
   silkRim.position.set(-4.5,1.9,-2.7);scene.add(silkRim);
   this.renderer.toneMappingExposure=lighting.exposure;
-  const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
   this.renderer.shadowMap.needsUpdate=true;
   this.scene=scene;this.world=root;this.design=design;
   this.update=t=>callbacks.forEach(fn=>fn(t));

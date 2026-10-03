@@ -1,4 +1,4 @@
-# Birthday Studio V2.1 — Cinematic Pass
+# Birthday Studio V3 — Real-asset cinematic prototype
 
 Standalone browser-based 3D birthday loop generator. This new repository does **not** reuse the Canvas 2D engine from AnimeLoopMaker.
 
@@ -9,6 +9,14 @@ Standalone browser-based 3D birthday loop generator. This new repository does **
 4. Generate again for another layout. A browser-local record of the last 3,000 structural fingerprints helps reduce repetition.
 
 The phrase **Happy Birthday** is prioritized on the first line, with the remainder of the title on a smaller second line. The 3D text is mounted inside the scene and the artist is displayed on the cake stand.
+
+## First real scanned 3D hero scene (V3 pilot)
+
+On its first Generate, the site presents **Strawberry Chocolate Cake**, a real scanned 3D model by **Kuutti Siitonen**, published by **Poly Haven** under CC0 1.0. It is a self-contained local ~3.3 MB GLB with embedded 1K PBR textures, not a stack of procedural cylinders. Provenance is recorded in [PROVENANCE.json](assets/models/PROVENANCE.json); [original source](https://polyhaven.com/a/strawberry_chocolate_cake).
+
+This one art-directed Pâtisserie scene adds an understated brass/stone pedestal, candles and scene-mounted lettering. Six procedural 3D scenes remain as fallbacks/alternatives, and **only one scene currently has a scanned cake**. The scene loads from this repository rather than fetching source metadata or 3D files at runtime.
+
+The scanned cake is rustic strawberry/chocolate, not a commissioned custom fondant birthday cake. This is a material-quality prototype, not a finished cinematic Blender scene library. Animations remain periodic and the camera is fixed, preserving the 10-second / 300-frame first/last identical-keyframe contract.
 
 ## Cinematic V2.1 lighting and depth
 

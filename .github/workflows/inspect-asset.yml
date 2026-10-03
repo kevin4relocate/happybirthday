@@ -1,0 +1,38 @@
+name: Import CC0 cinematic cake
+on:
+  push:
+    branches: [premium-scanned-hero-v3-20261003]
+    paths:
+      - scripts/inspect-cc0-model.mjs
+      - .github/workflows/inspect-asset.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Import licensed 1K glTF as standalone GLB
+        run: node scripts/inspect-cc0-model.mjs
+      - name: Commit model and CC0 provenance onto prototype branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/models/strawberry-chocolate-cake-1k.glb assets/models/PROVENANCE.json
+          if ! git diff --cached --quiet; then
+            git commit -m "asset: add CC0 photo-scanned chocolate strawberry cake GLB"
+            git push origin HEAD:premium-scanned-hero-v3-20261003
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: imported-cake
+          path: |
+            assets/models/*.glb
+            assets/models/PROVENANCE.json
+          if-no-files-found: ignore
