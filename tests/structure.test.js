@@ -39,7 +39,7 @@ test('V2.2 bakes bloom into the canvas and retains exact-seam exporter',()=>{
  const objects=read('../src/objects.js');
  const exportCode=read('../src/export.js');
  assert.match(scene,/new EffectComposer\(/);
- assert.match(scene,/new UnrealBloomPass\(/);
+ assert.match(scene,/new ShaderPass\(/);
  assert.match(scene,/new OutputPass\(/);
  assert.match(scene,/this\.composer\.render\(\)/);
  assert.match(scene,/this\.composer\.setSize\(targetW,targetH\)/);
