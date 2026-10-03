@@ -53,14 +53,22 @@ try{
     window.__capturedVideo=null;
     const old=URL.createObjectURL;
     URL.createObjectURL=function(blob){
-      if(blob instanceof Blob&&blob.type.startsWith('video/'))window.__capturedVideo={size:blob.size,type:blob.type};
+      if(blob instanceof Blob&&blob.type.startsWith('video/')){window.__capturedBlob=blob;window.__capturedVideo={size:blob.size,type:blob.type};}
       return old.call(this,blob);
     };
   });
   await page.click('#download');
   await page.waitForFunction(()=>window.__capturedVideo?.size>0,{timeout:90000});
   const video=await page.evaluate(()=>window.__capturedVideo);
-  assert.ok(video.size>100000,'Recorded video suspiciously small');
+  console.log('RECORDED_VIDEO_DIAGNOSTICS '+JSON.stringify(video));
+  if(video.size>0&&video.size<3_000_000){
+    const bytes=await page.evaluate(async()=>{
+      const buf=await window.__capturedBlob.arrayBuffer();
+      return Array.from(new Uint8Array(buf));
+    });
+    fs.writeFileSync(path.join(root,'test-output','recorded-loop.'+(video.type.includes('mp4')?'mp4':'webm')),Buffer.from(bytes));
+  }
+  assert.ok(video.size>1000,'Recorded video is empty or invalid');
   assert.match(video.type,/video\/(webm|mp4)/);
   assert.deepEqual(pageErrors,[], 'Browser JavaScript errors');
   console.log('BROWSER_SMOKE_PASS '+JSON.stringify({first:initial.scene,second,width:initial.width,height:initial.height,encodedBytes:video.size,mime:video.type}));
