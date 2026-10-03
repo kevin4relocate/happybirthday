@@ -57,6 +57,7 @@ try{
       return old.call(this,blob);
     };
   });
+  await page.evaluate(()=>{window.__BIRTHDAY_CI_EXPORT_PROFILE={width:640,height:360,fps:12,durationSeconds:2}});
   await page.click('#download');
   await page.waitForFunction(()=>window.__capturedVideo?.size>0,{timeout:90000});
   const video=await page.evaluate(()=>window.__capturedVideo);
