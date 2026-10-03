@@ -1,4 +1,5 @@
 import {DURATION_SECONDS,EXPORT_WIDTH,EXPORT_HEIGHT,EXPORT_FPS,fileSlug} from './core.js';
+import {muxWebM} from './webm.js';
 
 const FORMAT_CANDIDATES=[
  {mime:'video/webm;codecs=vp9',ext:'webm'},
@@ -19,7 +20,85 @@ const abortError=()=>Object.assign(new Error('Video export canceled.'),{name:'Ab
  * Animations are periodic and the same exact pose is submitted at t=0 and t=10s.
  * MediaRecorder controls actual encoded frame pacing; no invented frame-perfect claim.
  */
-export async function recordLoop(engine,{signal,onProgress=()=>{}}={}){
+
+/**
+ * Frame-by-frame export: WebCodecs assigns explicit timestamps to every frame.
+ * This works on slow GPUs without the frame drops of real-time MediaRecorder.
+ * CI uses a reduced fixture profile on localhost; production defaults to 1080p/30fps/10s.
+ */
+async function recordFrames(engine,{signal,onProgress=()=>{}},profile){
+ const supported=await pickEncoder(profile);
+ if(!supported)return null;
+ const {codec,config}=supported;
+ const total=Math.round(profile.fps*profile.durationSeconds);
+ const frames=[];
+ let failed=null,encoder=null,mode=false;
+ try{
+  engine.setExportMode(true,{width:profile.width,height:profile.height});mode=true;
+  encoder=new VideoEncoder({
+   output:chunk=>{
+     const data=new Uint8Array(chunk.byteLength);
+     chunk.copyTo(data);
+     frames.push({timestamp:chunk.timestamp,data,key:chunk.type==='key'});
+   },
+   error:e=>{failed=e}
+  });
+  encoder.configure(config);
+  const frameInterval=1000000/profile.fps;
+  for(let i=0;i<total;i++){
+   if(signal?.aborted)throw abortError();
+   if(failed)throw failed;
+   engine.draw(i/total);
+   const timestamp=Math.round(i*frameInterval);
+   const frame=new VideoFrame(engine.canvas,{timestamp,duration:Math.round(frameInterval)});
+   try{encoder.encode(frame,{keyFrame:i===0||i%(profile.fps*3)===0})}
+   finally{frame.close()}
+   if(encoder.encodeQueueSize>=4)await encoder.flush();
+   if(failed)throw failed;
+   onProgress((i+1)/total);
+   // Keep the browser UI responsive; the encoder runs in its own media thread.
+   await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  await encoder.flush();
+  if(failed)throw failed;
+  if(frames.length!==total)throw new Error('Encoder produced '+frames.length+' of '+total+' frames.');
+  engine.draw(0);
+  const blob=muxWebM({width:profile.width,height:profile.height,durationSeconds:profile.durationSeconds,codec,frames});
+  return {blob,ext:'webm',width:profile.width,height:profile.height,duration:profile.durationSeconds,frames:frames.length,offline:true};
+ }finally{
+  encoder?.close();
+  if(mode||engine.exporting)engine.setExportMode(false);
+ }
+}
+async function pickEncoder(profile){
+ if(typeof globalThis.VideoEncoder==='undefined'||typeof globalThis.VideoFrame==='undefined')return null;
+ const codecs=['vp09.00.10.08','vp8'];
+ for(const codec of codecs){
+  const config={codec,width:profile.width,height:profile.height,bitrate:8_000_000,
+    framerate:profile.fps,latencyMode:'quality',hardwareAcceleration:'prefer-hardware'};
+  try{const result=await VideoEncoder.isConfigSupported(config);if(result.supported)return {codec,config:result.config||config}}
+  catch(_){}
+ }
+ return null;
+}
+function exportProfile(){
+ const base={width:EXPORT_WIDTH,height:EXPORT_HEIGHT,fps:EXPORT_FPS,durationSeconds:DURATION_SECONDS};
+ // Used exclusively by the local browser smoke test; not an end-user setting.
+ const testing=globalThis.location?.hostname==='127.0.0.1'?globalThis.__BIRTHDAY_CI_EXPORT_PROFILE:null;
+ if(!testing)return base;
+ const data={...base,...testing};
+ if(!Number.isInteger(data.width)||!Number.isInteger(data.height)||data.width<64||data.height<64||
+    !Number.isInteger(data.fps)||data.fps<1||data.fps>60||data.durationSeconds<1||data.durationSeconds>20)return base;
+ return data;
+}
+
+export async function recordLoop(engine,{signal,onProgress=()=>{}}={}){ 
+ const profile=exportProfile();
+ if(!signal?.aborted){
+  const exact=await recordFrames(engine,{signal,onProgress},profile);
+  if(exact)return exact;
+ }
+
  if(!globalThis.MediaRecorder||typeof engine.canvas.captureStream!=='function'){
   throw new Error('Your browser cannot record this 3D canvas. Use a recent Chrome, Edge, or Safari.');
  }
