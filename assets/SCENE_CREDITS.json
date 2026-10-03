@@ -2,13 +2,13 @@
   {
     "scene": "rose-garden",
     "file": "rose-garden.jpg",
-    "photographer": "Maria",
-    "sourcePage": "https://www.pexels.com/photo/elegant-pink-birthday-cake-with-flowers-34263114/",
+    "photographer": "Busenur Demirkan",
+    "sourcePage": "https://www.pexels.com/photo/floral-birthday-cake-with-pink-roses-and-ribbons-33100289/",
     "license": "Pexels License",
     "licenseUrl": "https://www.pexels.com/license/",
-    "cdnUrl": "https://images.pexels.com/photos/34263114/pexels-photo-34263114.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85",
-    "bytes": 664651,
-    "sha256": "e8798d83d1f3ab8462907d2498948e8d8353fc0871d29d4e8fab767e9cc83b6a"
+    "cdnUrl": "https://images.pexels.com/photos/33100289/pexels-photo-33100289.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85",
+    "bytes": 401785,
+    "sha256": "802c566107dcc5207063b0f2da7d0b3634f732a401128e99f63006803aabb099"
   },
   {
     "scene": "golden-ballroom",
