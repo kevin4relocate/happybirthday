@@ -1,36 +1,48 @@
-# Midnight Gala — Birthday Loop Studio
+# Birthday Studio V4 — Cinematic Scene Library
 
-This repository was deliberately rebuilt as a **single flagship scene**. The old six procedural 3D scenes, toy-like balloons, stage engine, asset-import experiments and the earlier gallery have been removed from the main code tree.
+An internal tool with only **Song title**, **Artist name**, **Generate**, **Preview** and **Download**. No advanced sliders or public-facing marketing copy.
 
-## What this first flagship actually is
+## Three editorial birthday scenes
 
-A licensed **real cake photograph** with art-directed dark negative space, metallic editorial typography, softly moving light pools and floating bokeh. It is a **cinematic photo-motion composition**, **not** a native 3D cake model or a real moving candle-flame simulation. The camera stays fixed and there is no zoom in/out.
+The application now contains three genuinely different locally hosted photographic layouts:
 
-Photo: **Rakesh Sitnoor**, [Unsplash](https://unsplash.com/photos/brown-and-white-cake-on-white-ceramic-plate-wvQk48s--zw). [Unsplash License](https://unsplash.com/license). The local source image and its checksum live in `assets/`.
+| Scene | Photographic source | Art direction |
+|---|---|---|
+| **Midnight Gala** | Original cake photo by Rakesh Sitnoor | Dark editorial cake on the right; gold-and-ivory text left; warm flicker |
+| **Rose Garden** | [Pink rose-and-ribbon cake](https://www.pexels.com/photo/floral-birthday-cake-with-pink-roses-and-ribbons-33100289/) by Busenur Demirkan | Light rose/ivory palette; cake on the **left**, text on the **right**, gentle petals |
+| **Golden Ballroom** | [White cake on gold stand](https://www.pexels.com/photo/layer-cake-and-flower-decorations-on-a-table-at-a-party-15937640/) by Jonathan Borba; [luxury ballroom](https://www.pexels.com/photo/luxurious-wedding-banquet-hall-with-chandeliers-33852468/) by Raj | Golden hall photography with a blended cake portrait on the right and champagne typography |
 
-The entire app has only two inputs, **Generate**, a 16:9 live preview, and **Download seamless loop**. Generate alters restrained lighting/bokeh variations of this one designed composition. **Do not represent these as hundreds of completely different premium scenes.**
+All new images are Pexels License photos, downloaded once and served from this repository. Attribution and checksums are recorded in [assets/SCENE_CREDITS.json](assets/SCENE_CREDITS.json); original Midnight Gala credit remains in [assets/ART_CREDIT.json](assets/ART_CREDIT.json).
 
-## Video contract
+**Content precision:** Golden Ballroom combines two independent photographs. It is an editorial composite, not a single photograph of a staged birthday celebration. The static photographs remain still; the tool animates lighting, particles and occasionally tiny petal-like accents.
 
-WebCodecs creates exactly **300 frames at 30 fps**, with 10 seconds of silent 1920×1080 WebM output on a supported machine. The first frame's encoded keyframe is cloned byte-for-byte into frame 300. Chromium CI verifies that the first/last decoded RGB frames have zero pixel difference **and** that the middle image has genuinely changed; it rejects all-black/still exports. Repeating the clip 18 times in a 30-fps video editor covers a 3-minute song. No music is embedded.
+## Automatic scene selection
 
-The browser requires desktop Chrome/Edge or another implementation of VP8/VP9 WebCodecs. On unsupported browsers, export fails clearly rather than silently generating dropped-frame loops.
+- A fresh browser starts at Midnight Gala. Generate automatically switches to another **master scene**.
+- Up to 60 recent selections are recorded locally, and the next scene avoids the previous **two** scene IDs. With three masters, this means it cycles through all three before revisiting one.
+- Each master has four restrained lighting moods, chosen automatically. This produces variations of **three** curated compositions, not hundreds of unique photos. More masters require more licensed image assets.
+- No additional settings, menus, sliders or user decisions.
+
+## Exact 10-second loop contract
+
+The existing WebCodecs encoder is intentionally unchanged. A supported browser exports **10 seconds at 1920×1080 and 30fps** (300 video frames). Frame 300 is a byte-for-byte clone of the first compressed keyframe. The Chrome/FFmpeg smoke test verifies identical first/last decoded RGB pixels, that the video is non-black, and that motion exists at the middle frame.
+
+Repeat the 10-second video 18 times in a 30fps editor to cover a three-minute song. Output is **silent WebM**; add your soundtrack in the video editor. The source seam guarantee does not necessarily survive an editor's frame-rate conversion or lossy transcode.
 
 ## Architecture
 
-- `src/scene.js` — one layered photographic hero scene; cached full-resolution stills; periodic native Canvas2D motion
-- `src/core.js` — seeded lighting variations, two-line title handling, output settings
-- `src/app.js` — minimal UI and preview lifecycle
-- `src/export.js`, `src/loop.js`, `src/webm.js` — retained and proven seam-safe WebCodecs video pipeline
-- `assets/` — locally stored, license-documented key photography
-- `tests/` — Node contract tests and real Chromium + FFmpeg full-seam verification
+- `src/scene-registry.js`: immutable scene metadata, local photo paths, and non-repeating scene picker
+- `src/core.js`: scene history, seeded moods, two-line title, 10-second output settings
+- `src/scene.js`: three individual art-directed photographic compositions; phase-periodic motion
+- `src/app.js`: minimal two-field UI, Generate history, preview/export lifecycle
+- `src/export.js`, `src/loop.js`, `src/webm.js`: unchanged strict seam-safe encoder
+- `assets/`: licensed local source photographs and provenance
+- `tests/`: Node checks + Chrome browser screenshots for **all three** scenes + a full 300-frame decoded seam check
 
-## Cloudflare Pages
+## Deployment
 
-Deploy the repository root as a static site. Preset: **None**. Build command: **empty**. Output directory: **.**.
+Static root. Cloudflare Pages: **None** framework, blank build command, output `.`.
 
-## Product honesty
+## Limitations
 
-The photographic image is static: only candlelight-style illumination and dust/bokeh animate. For a fully 3D cinematic ballroom, original modeled high-end 3D assets and studio lighting are still required. This reset is intended to validate a **beautiful, restrained flagship composition first**, rather than promising a complete film-quality 3D scene engine prematurely.
-
-Previous designs remain available in Git history and merged PRs. A separate unmerged scanned-cake experiment exists on PR #5; it is **not** part of this clean reset.
+This is a **cinematic photo-motion** template library, not a native Blender room or moving 3D cake. Each photographic master is distinct, but random mood settings do not magically produce a unique photo or 1,000 truly different cinematic worlds. Full-resolution GPU/browser export must still be tested on the target device. New master scenes should be reviewed visually and tracked for usage rights before being added.

@@ -1,14 +1,10 @@
+import {SCENES,getScene,pickScene} from './scene-registry.js';
+
 export const DURATION_SECONDS=10;
 export const EXPORT_WIDTH=1920;
 export const EXPORT_HEIGHT=1080;
 export const EXPORT_FPS=30;
-export const SCENE_ID='midnight-gala';
-export const ART_VARIANTS=Object.freeze([
- {name:'Candlelight',glow:'#ffbb79',ink:'#f7dfaa',dim:.92},
- {name:'Champagne Hour',glow:'#ffcc99',ink:'#eacb91',dim:.86},
- {name:'Velvet Night',glow:'#ffc2b1',ink:'#f7d8bd',dim:.94},
- {name:'Golden Memory',glow:'#ffc86b',ink:'#ecd6aa',dim:.90}
-]);
+export {SCENES};
 export function randomGenerator(seed){
  let s=seed>>>0;
  return ()=>{s=(s+0x6D2B79F5)|0;let n=Math.imul(s^(s>>>15),1|s);n^=n+Math.imul(n^(n>>>7),61|n);return ((n^(n>>>14))>>>0)/4294967296};
@@ -33,11 +29,33 @@ export function fileSlug(text){
    .replace(/[^\p{L}\p{N}]+/gu,'-')
    .replace(/^-+|-+$/g,'').slice(0,70)||'birthday';
 }
-export function newDesign(title,artist,previous=null,rng=Math.random){
+export function newDesign(title,artist,previous=null,rng=Math.random,recent=[]){
+ // For a fresh install, showcase the existing flagship first. Subsequent
+ // Generate clicks automatically rotate among distinct mastered compositions.
+ const history=recent.length?recent:(previous?[previous.scene]:[]);
+ const sceneId=history.length?pickScene(history,rng):SCENES[0].id;
+ const scene=getScene(sceneId);
+ if(!scene)throw new Error('Unknown scene');
+ let variant=Math.floor(rng()*scene.moods.length);
+ if(previous?.scene===sceneId&&previous.variant===variant)
+  variant=(variant+1)%scene.moods.length;
  const seed=Math.max(1,Math.floor(rng()*0x7fffffff));
- let variant=Math.floor(rng()*ART_VARIANTS.length);
- if(previous&&ART_VARIANTS.length>1&&variant===previous.variant)
-  variant=(variant+1)%ART_VARIANTS.length;
- return {scene:SCENE_ID,title:String(title).trim(),artist:String(artist).trim(),
-  lines:splitTitle(title),seed,variant,variantName:ART_VARIANTS[variant].name};
+ return {scene:sceneId,title:String(title).trim(),artist:String(artist).trim(),
+  lines:splitTitle(title),seed,variant,variantName:scene.moods[variant]};
+}
+const HISTORY_KEY='birthday-v4-scene-history';
+export class SceneHistory{
+ constructor(storage=null){
+  this.storage=storage;
+  try{
+   const parsed=JSON.parse(storage?.getItem(HISTORY_KEY)||'[]');
+   this.records=Array.isArray(parsed)?parsed.filter(id=>!!getScene(id)).slice(-60):[];
+  }catch(_){this.records=[]}
+ }
+ add(sceneId){
+  if(!getScene(sceneId))return;
+  this.records.push(sceneId);
+  if(this.records.length>60)this.records=this.records.slice(-60);
+  try{this.storage?.setItem(HISTORY_KEY,JSON.stringify(this.records))}catch(_){}
+ }
 }

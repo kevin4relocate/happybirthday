@@ -1,0 +1,35 @@
+[
+  {
+    "scene": "rose-garden",
+    "file": "rose-garden.jpg",
+    "photographer": "Busenur Demirkan",
+    "sourcePage": "https://www.pexels.com/photo/floral-birthday-cake-with-pink-roses-and-ribbons-33100289/",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "cdnUrl": "https://images.pexels.com/photos/33100289/pexels-photo-33100289.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85",
+    "bytes": 401785,
+    "sha256": "802c566107dcc5207063b0f2da7d0b3634f732a401128e99f63006803aabb099"
+  },
+  {
+    "scene": "golden-ballroom",
+    "file": "golden-ballroom-cake.jpg",
+    "photographer": "Jonathan Borba",
+    "sourcePage": "https://www.pexels.com/photo/layer-cake-and-flower-decorations-on-a-table-at-a-party-15937640/",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "cdnUrl": "https://images.pexels.com/photos/15937640/pexels-photo-15937640.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85",
+    "bytes": 1058666,
+    "sha256": "f6ac45e5c50c6d43b89834b7a4cf515a8d0a508cb8769c0c9e23bea050cab70d"
+  },
+  {
+    "scene": "golden-ballroom",
+    "file": "golden-ballroom-hall.jpg",
+    "photographer": "Raj",
+    "sourcePage": "https://www.pexels.com/photo/luxurious-wedding-banquet-hall-with-chandeliers-33852468/",
+    "license": "Pexels License",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "cdnUrl": "https://images.pexels.com/photos/33852468/pexels-photo-33852468.jpeg?auto=compress&cs=tinysrgb&w=2200&q=85",
+    "bytes": 860407,
+    "sha256": "56d31235819446d02af4869aa231f0df625ad005b81ff42203bca7adc29c096c"
+  }
+]

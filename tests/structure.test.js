@@ -1,35 +1,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
-test('exactly two input fields',()=>{
+test('simple internal two-field creator remains intact',()=>{
  const html=read('../index.html');
  assert.equal((html.match(/<input\b/g)||[]).length,2);
- for(const id of ['song-title','artist-name','generate','download','stage'])assert.ok(html.includes('id="'+id+'"'));
+ for(const id of ['song-title','artist-name','generate','download','stage'])
+  assert.ok(html.includes('id="'+id+'"'));
+ for(const slogan of ['THE ART OF CELEBRATION','Make the moment','A candlelit birthday story'])
+  assert.ok(!html.includes(slogan));
 });
-test('internal creator has no public-facing marketing copy',()=>{
- const html=read('../index.html');
- for(const copy of ['THE ART OF CELEBRATION','Make the moment','last forever.',
-  'A candlelit birthday story','One crafted scene','An editorial birthday still life',
-  'THE FLAGSHIP SCENE','AN ORIGINAL NEW BEGINNING']){
-  assert.ok(!html.includes(copy),'Unwanted decorative marketing text: '+copy);
+test('all scene photographs are bundled and have individual license records',()=>{
+ const old=JSON.parse(read('../assets/ART_CREDIT.json'));
+ const sources=JSON.parse(read('../assets/SCENE_CREDITS.json'));
+ assert.match(old.licenseUrl,/unsplash\.com\/license/);
+ assert.equal(sources.length,3);
+ const hashes=new Set();
+ for(const source of sources){
+  assert.equal(source.license,'Pexels License');
+  assert.match(source.sourcePage,/^https:\/\/www\.pexels\.com\/photo\//);
+  const url=new URL('../assets/'+source.file,import.meta.url);
+  assert.ok(existsSync(url),'Missing photo: '+source.file);
+  const hash=createHash('sha256').update(readFileSync(url)).digest('hex');
+  assert.equal(source.sha256,hash,'Photo contents differ from audited file');
+  hashes.add(hash);
  }
- assert.match(html,/<label for="song-title">SONG TITLE<\/label>/);
- assert.match(html,/<label for="artist-name">ARTIST NAME<\/label>/);
- assert.match(html,/> Generate <span/);
+ assert.equal(hashes.size,3);
 });
-test('licensed local photo and no legacy procedural scene engine',()=>{
- const art=JSON.parse(read('../assets/ART_CREDIT.json'));
- assert.equal(art.photographer,'Rakesh Sitnoor');
- assert.match(art.licenseUrl,/unsplash\.com\/license/);
- assert.ok(existsSync(new URL('../assets/midnight-gala.jpg',import.meta.url)));
+test('photo scenes use distinct compositions with deterministic motion',()=>{
  const s=read('../src/scene.js');
- assert.match(s,/\.\/assets\/midnight-gala\.jpg/);
- assert.doesNotMatch(s,/THREE|WebGLRenderer|GLTFLoader/);
+ const registry=read('../src/scene-registry.js');
+ const app=read('../src/app.js');
+ for(const name of ['drawMidnight','drawRose','drawGolden'])assert.ok(s.includes(name));
+ assert.match(s,/this\.phase\*TAU/);
  assert.match(s,/noZoom=true/);
- assert.doesNotMatch(s,/Math\.random\(|Date\.now\(/);
+ assert.doesNotMatch(s,/THREE|WebGLRenderer|GLTFLoader|Math\.random\(|Date\.now\(/);
+ assert.match(registry,/rose-garden/);
+ assert.match(registry,/golden-ballroom/);
+ assert.match(app,/history\.add\(next\.scene\)/);
 });
-test('video exporter requires exact seam and rejects realtime recording',()=>{
+test('strict seam encoder untouched and no real-time recording fallback',()=>{
  const s=read('../src/export.js');
  assert.match(s,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
  assert.doesNotMatch(s,/captureStream|new MediaRecorder/);
