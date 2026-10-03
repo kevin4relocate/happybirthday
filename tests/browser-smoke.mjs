@@ -47,11 +47,37 @@ try{
   assert.match(initial.title,/Happy Birthday/);
   assert.match(initial.scene,/MIDNIGHT GALA/);
   fs.mkdirSync(path.join(root,'test-output'),{recursive:true});
+  const pixelSample=()=>page.evaluate(()=>{
+    const canvas=document.getElementById('stage');
+    const {data,width}=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height);
+    let red=0,green=0,blue=0,brightness=0;
+    for(let p=0;p<data.length;p+=101*4){
+      red=(red+data[p])%104729;
+      green=(green+data[p+1])%104729;
+      blue=(blue+data[p+2])%104729;
+      brightness+=data[p]+data[p+1]+data[p+2];
+    }
+    return [red,green,blue,Math.round(brightness/1000),width].join(':');
+  });
+  const initialPixels=await pixelSample();
   await page.screenshot({path:path.join(root,'test-output','midnight-gala-preview.png'),fullPage:true});
-  await page.click('#generate');
-  await page.screenshot({path:path.join(root,'test-output','midnight-gala-second-mood.png'),fullPage:true});
-  const second=await page.evaluate(()=>document.querySelector('#scene-caption')?.textContent);
-  assert.notEqual(initial.scene,second,'Generate must change the lighting mood on adjacent clicks');
+  const scenes=[initial.scene],signatures=[initialPixels];
+  for(let i=1;i<3;i++){
+    await page.click('#generate');
+    const current=await page.evaluate(()=>document.querySelector('#scene-caption')?.textContent);
+    scenes.push(current);
+    signatures.push(await pixelSample());
+    const slug=current.toLowerCase().includes('rose garden')?'rose-garden':'golden-ballroom';
+    await page.screenshot({path:path.join(root,'test-output',slug+'-preview.png'),fullPage:true});
+  }
+  assert.equal(new Set(scenes.map(x=>x.split(' · ')[0])).size,3,
+    'Three consecutive generations must visit all three different scenes: '+JSON.stringify(scenes));
+  assert.equal(new Set(signatures).size,3,
+    'Three master scenes must have different actual preview pixels');
+  assert.ok(scenes.some(x=>/ROSE GARDEN/.test(x)));
+  assert.ok(scenes.some(x=>/GOLDEN BALLROOM/.test(x)));
+  const second=scenes[1];
+  console.log('THREE_SCENES_PASS '+JSON.stringify({scenes,signatures}));
   await page.evaluate(()=>{
     window.__capturedVideo=null;
     const old=URL.createObjectURL;
@@ -131,7 +157,7 @@ try{
     width:stream.width,height:stream.height,firstLastPixelDifference:0,repeatsForThreeMinuteSong:18
   }));
   assert.deepEqual(pageErrors,[], 'Browser JavaScript errors');
-  console.log('BROWSER_SMOKE_PASS '+JSON.stringify({first:initial.scene,second,width:initial.width,height:initial.height,encodedBytes:video.size,mime:video.type}));
+  console.log('BROWSER_SMOKE_PASS '+JSON.stringify({first:initial.scene,second,scenes,width:initial.width,height:initial.height,encodedBytes:video.size,mime:video.type}));
 }finally{
   await browser?.close();
   await new Promise(resolve=>server.close(resolve));
