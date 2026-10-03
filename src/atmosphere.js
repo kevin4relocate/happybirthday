@@ -30,7 +30,7 @@ function glow(group,texture,x,y,z,size,color,opacity){
 }
 function velvetCurtain(root,theme,side,richness){
  const segments=24;
- const geo=new THREE.PlaneGeometry(2.6,8.4,segments,24);
+ const geo=new THREE.PlaneGeometry(1.8,8.4,segments,24);
  const attr=geo.attributes.position;
  for(let i=0;i<attr.count;i++){
   const x=attr.getX(i),y=attr.getY(i);
@@ -43,10 +43,10 @@ function velvetCurtain(root,theme,side,richness){
  const material=new THREE.MeshPhysicalMaterial({
   color:shade,roughness:.93,metalness:0,sheen:1,
   sheenColor:new THREE.Color(theme.accent),sheenRoughness:.9,
-  side:THREE.DoubleSide,transparent:true,opacity:.77,depthWrite:false
+  side:THREE.DoubleSide,transparent:true,opacity:.67,depthWrite:false
  });
  const panel=new THREE.Mesh(geo,material);
- panel.position.set(side*5.65,1.15,-3.85);
+ panel.position.set(side*6.40,1.15,-4.15);
  panel.rotation.y=side*.20;
  panel.receiveShadow=true;
  root.add(panel);
