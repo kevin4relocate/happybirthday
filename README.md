@@ -1,4 +1,4 @@
-# Birthday Studio V2
+# Birthday Studio V2.1 — Cinematic Pass
 
 Standalone browser-based 3D birthday loop generator. This new repository does **not** reuse the Canvas 2D engine from AnimeLoopMaker.
 
@@ -9,6 +9,14 @@ Standalone browser-based 3D birthday loop generator. This new repository does **
 4. Generate again for another layout. A browser-local record of the last 3,000 structural fingerprints helps reduce repetition.
 
 The phrase **Happy Birthday** is prioritized on the first line, with the remainder of the title on a smaller second line. The 3D text is mounted inside the scene and the artist is displayed on the cake stand.
+
+## Cinematic V2.1 lighting and depth
+
+The studio now uses six curated, scene-matched low-key lighting schemes and deterministic fixed-camera compositions (front hero, slight three-quarter angles, grand). A layered procedural set introduces material velvet curtains, distant and foreground bokeh, subtle light shafts, soft pools of light and coordinated stage reflections. The birthday cake receives frosting sheen and fine metallic trim; lettering has distinct face and bevel materials and the artist name sits on a shaped inset plaque.
+
+All animated atmospheric elements use seeded, periodic motion; **no camera animation** is introduced. The 10-second, 300-frame video still uses the identical-keyframe seam contract, validated in CI by decoding first and last RGB images with FFmpeg.
+
+These features improve the procedural rendering foundation but **do not replace hand-authored Blender models or studio HDRI lighting**. The six scene presets remain recognizable variations of a shared procedural set, not six unrelated film-quality environments.
 
 ## Six procedural 3D scene families
 
