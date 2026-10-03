@@ -13,6 +13,7 @@ const DIRECTIONS=Object.freeze({
  garden:{light:'garden-dusk',atmosphere:'botanical',camera:['portrait','three-quarter-right','grand']},
  disco:{light:'disco-gems',atmosphere:'prism',camera:['portrait','three-quarter-left','three-quarter-right']}
 });
+export function allowedCamerasForScene(scene){return [...(DIRECTIONS[scene]||DIRECTIONS.atelier).camera]}
 export function cinematicProfile(design){
  const setting=DIRECTIONS[design.scene]||DIRECTIONS.atelier;
  return {
