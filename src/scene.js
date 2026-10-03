@@ -190,11 +190,13 @@ export class GalaScene{
    [0,'rgba(20,9,10,.92)'],[.36,'rgba(27,15,13,.83)'],
    [.67,'rgba(28,16,14,.39)'],[1,'rgba(25,13,12,.23)']
   ]);c.fillRect(0,0,W,H);
-  this.maskedImage(c,cake,[1030,65,835,960],ctx=>{
-   const g=ctx.createRadialGradient(1450,515,240,1450,535,570);
+  // The cake photograph starts well outside the visible radial mask.
+  // This prevents a hard vertical crop line where the banquet room begins.
+  this.maskedImage(c,cake,[780,42,1120,996],ctx=>{
+   const g=ctx.createRadialGradient(1460,535,145,1460,535,760);
    g.addColorStop(0,'rgba(255,255,255,1)');
-   g.addColorStop(.57,'rgba(255,255,255,.99)');
-   g.addColorStop(.83,'rgba(255,255,255,.68)');
+   g.addColorStop(.50,'rgba(255,255,255,.97)');
+   g.addColorStop(.83,'rgba(255,255,255,.46)');
    g.addColorStop(1,'rgba(255,255,255,0)');
    return g;
   });
