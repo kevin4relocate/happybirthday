@@ -69,7 +69,7 @@ function hazeVeil(root,theme,profile,texture){
 function shafts(root,theme,profile){
  const coneMaterial=new THREE.MeshBasicMaterial({
   color:profile.atmosphereMood==='prism'?'#ba8fda':theme.palette[1],
-  transparent:true,opacity:.025,depthWrite:false,side:THREE.DoubleSide,
+  transparent:true,opacity:.007,depthWrite:false,side:THREE.DoubleSide,
   blending:THREE.AdditiveBlending
  });
  for(const side of [-1,1]){
@@ -91,8 +91,7 @@ export function createAtmosphere(root,design,theme){
  const group=new THREE.Group();
  root.add(group);
  const texture=spriteTexture();
- if(profile.atmosphereMood==='velvet'||profile.atmosphereMood==='storybook'||
-     profile.atmosphereMood==='dream-haze'||profile.atmosphereMood==='twilight'){
+ if(profile.atmosphereMood==='velvet'||profile.atmosphereMood==='storybook'){
   velvetCurtain(group,theme,-1,profile.accent);
   velvetCurtain(group,theme,1,profile.accent);
  }
