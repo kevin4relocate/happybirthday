@@ -9,8 +9,8 @@ The application now contains three genuinely different locally hosted photograph
 | Scene | Photographic source | Art direction |
 |---|---|---|
 | **Midnight Gala** | Original cake photo by Rakesh Sitnoor | Dark editorial cake on the right; gold-and-ivory text left; warm flicker |
-| **Rose Garden** | [Pink floral birthday cake](https://www.pexels.com/photo/elegant-pink-birthday-cake-with-floral-decor-34833097/) by aryapandusedjati . | Light rose/ivory palette; cake on the **left**, text on the **right**, gentle petals |
-| **Golden Ballroom** | [White cake on gold stand](https://www.pexels.com/photo/elegant-white-wedding-cake-with-gold-stand-34596958/) by Caleb Oquendo; [luxury ballroom](https://www.pexels.com/photo/luxurious-wedding-banquet-hall-with-chandeliers-33852468/) by Raj | Golden hall photography with a blended cake portrait on the right and champagne typography |
+| **Rose Garden** | [Pink floral birthday cake](https://www.pexels.com/photo/elegant-pink-birthday-cake-with-flowers-34263114/) by Maria | Light rose/ivory palette; cake on the **left**, text on the **right**, gentle petals |
+| **Golden Ballroom** | [White cake on gold stand](https://www.pexels.com/photo/layer-cake-and-flower-decorations-on-a-table-at-a-party-15937640/) by Jonathan Borba; [luxury ballroom](https://www.pexels.com/photo/luxurious-wedding-banquet-hall-with-chandeliers-33852468/) by Raj | Golden hall photography with a blended cake portrait on the right and champagne typography |
 
 All new images are Pexels License photos, downloaded once and served from this repository. Attribution and checksums are recorded in [assets/SCENE_CREDITS.json](assets/SCENE_CREDITS.json); original Midnight Gala credit remains in [assets/ART_CREDIT.json](assets/ART_CREDIT.json).
 
