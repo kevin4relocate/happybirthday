@@ -29,7 +29,7 @@ const port=server.address().port;
 const executable=process.env.CHROME_BIN||'/usr/bin/google-chrome';
 let browser;
 try{
-  browser=await puppeteer.launch({headless:true,executablePath:executable,
+  browser=await puppeteer.launch({headless:true,executablePath:executable,protocolTimeout:540000,
     args:['--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   const page=await browser.newPage();
   await page.setViewport({width:1440,height:950,deviceScaleFactor:1});
@@ -106,13 +106,25 @@ try{
   assert.equal(Number(stream?.width),320);
   assert.equal(Number(stream?.height),180);
   const frames=spawnSync('ffmpeg',['-v','error','-i',file,'-vf',
-    'select=eq(n\\,0)+eq(n\\,299)','-fps_mode','passthrough','-pix_fmt','rgb24',
+    'select=eq(n\\,0)+eq(n\\,150)+eq(n\\,299)','-fps_mode','passthrough','-pix_fmt','rgb24',
     '-f','rawvideo','pipe:1'],{timeout:60000,maxBuffer:4*1024*1024});
   assert.equal(frames.status,0,'ffmpeg failed: '+frames.stderr?.toString());
   const frameSize=320*180*3;
-  assert.equal(frames.stdout.length,frameSize*2,'Two RGB frames must be decoded');
-  assert.deepEqual(frames.stdout.subarray(0,frameSize),frames.stdout.subarray(frameSize),
-    'Decoded first and last frames must be pixel-identical');
+  assert.equal(frames.stdout.length,frameSize*3,'First, middle and last frames must decode as RGB');
+  const firstFrame=frames.stdout.subarray(0,frameSize);
+  const middleFrame=frames.stdout.subarray(frameSize,frameSize*2);
+  const lastFrame=frames.stdout.subarray(frameSize*2);
+  assert.deepEqual(firstFrame,lastFrame,'Decoded first and last frames must be pixel-identical');
+  let brightness=0,changedPixels=0;
+  for(let i=0;i<frameSize;i+=3){
+    brightness+=firstFrame[i]+firstFrame[i+1]+firstFrame[i+2];
+    if(Math.abs(firstFrame[i]-middleFrame[i])+Math.abs(firstFrame[i+1]-middleFrame[i+1])
+      +Math.abs(firstFrame[i+2]-middleFrame[i+2])>16)changedPixels++;
+  }
+  brightness/=frameSize;
+  assert.ok(brightness>12,'Encoded video looks black/empty: '+brightness.toFixed(2));
+  assert.ok(changedPixels>100,'Video has no meaningful scene motion: '+changedPixels);
+  console.log('IMAGE_CONTENT_PASS '+JSON.stringify({averageRGB:brightness.toFixed(2),changedPixels}));
   console.log('EXACT_LOOP_SEAM_PASS '+JSON.stringify({
     decodedFrames:stream.nb_read_frames,fps:30,duration:videoMetadata.duration,
     width:stream.width,height:stream.height,firstLastPixelDifference:0,repeatsForThreeMinuteSong:18

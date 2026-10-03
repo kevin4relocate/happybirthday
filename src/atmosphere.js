@@ -30,7 +30,7 @@ function glow(group,texture,x,y,z,size,color,opacity){
 }
 function velvetCurtain(root,theme,side,richness){
  const segments=24;
- const geo=new THREE.PlaneGeometry(2.6,8.4,segments,24);
+ const geo=new THREE.PlaneGeometry(1.8,8.4,segments,24);
  const attr=geo.attributes.position;
  for(let i=0;i<attr.count;i++){
   const x=attr.getX(i),y=attr.getY(i);
@@ -43,10 +43,10 @@ function velvetCurtain(root,theme,side,richness){
  const material=new THREE.MeshPhysicalMaterial({
   color:shade,roughness:.93,metalness:0,sheen:1,
   sheenColor:new THREE.Color(theme.accent),sheenRoughness:.9,
-  side:THREE.DoubleSide,transparent:true,opacity:.77,depthWrite:false
+  side:THREE.DoubleSide,transparent:true,opacity:.67,depthWrite:false
  });
  const panel=new THREE.Mesh(geo,material);
- panel.position.set(side*5.65,1.15,-3.85);
+ panel.position.set(side*6.40,1.15,-4.15);
  panel.rotation.y=side*.20;
  panel.receiveShadow=true;
  root.add(panel);
@@ -69,7 +69,7 @@ function hazeVeil(root,theme,profile,texture){
 function shafts(root,theme,profile){
  const coneMaterial=new THREE.MeshBasicMaterial({
   color:profile.atmosphereMood==='prism'?'#ba8fda':theme.palette[1],
-  transparent:true,opacity:.025,depthWrite:false,side:THREE.DoubleSide,
+  transparent:true,opacity:.007,depthWrite:false,side:THREE.DoubleSide,
   blending:THREE.AdditiveBlending
  });
  for(const side of [-1,1]){
@@ -91,8 +91,7 @@ export function createAtmosphere(root,design,theme){
  const group=new THREE.Group();
  root.add(group);
  const texture=spriteTexture();
- if(profile.atmosphereMood==='velvet'||profile.atmosphereMood==='storybook'||
-     profile.atmosphereMood==='dream-haze'||profile.atmosphereMood==='twilight'){
+ if(profile.atmosphereMood==='velvet'||profile.atmosphereMood==='storybook'){
   velvetCurtain(group,theme,-1,profile.accent);
   velvetCurtain(group,theme,1,profile.accent);
  }

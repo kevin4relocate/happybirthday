@@ -34,3 +34,17 @@ test('all six 3D scenes share the cinematic lighting and atmosphere pipeline',()
  assert.match(atmosphere,/Math\.sin\(/);
  assert.doesNotMatch(atmosphere,/Date\.now\(|performance\.now\(|Math\.random\(/);
 });
+test('V2.2 bakes bloom into the canvas and retains exact-seam exporter',()=>{
+ const scene=read('../src/scene.js');
+ const objects=read('../src/objects.js');
+ const exportCode=read('../src/export.js');
+ assert.match(scene,/this\.renderer\.render\(this\.scene,this\.camera\)/);
+ assert.match(scene,/this\.renderer\.shadowMap\.autoUpdate=false/);
+ assert.match(scene,/this\.renderer\.shadowMap\.needsUpdate=true/);
+ assert.doesNotMatch(scene,/EffectComposer|ShaderPass|UnrealBloomPass/);
+ assert.match(objects,/function drippingIcing\(/);
+ assert.match(objects,/function flameHaloTexture\(/);
+ assert.match(objects,/function makeBackdrop\(/);
+ assert.match(objects,/Float32BufferAttribute\(colors,3\)/);
+ assert.match(exportCode,/closeExactEncodedSeam\(samples,total,profile\.fps\)/);
+});

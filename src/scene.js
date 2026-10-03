@@ -15,6 +15,7 @@ export class BirthdayScene {
   this.renderer.toneMappingExposure=1.25;
   this.renderer.shadowMap.enabled=true;
   this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.renderer.shadowMap.autoUpdate=false; // Static studio rig: cache atlas during frame-by-frame export.
   this.camera=new THREE.PerspectiveCamera(38,16/9,.1,90);
   this.camera.position.set(0,1.00,11.25);
   this.camera.lookAt(0,.59,0);
@@ -78,6 +79,7 @@ export class BirthdayScene {
   silkRim.position.set(-4.5,1.9,-2.7);scene.add(silkRim);
   this.renderer.toneMappingExposure=lighting.exposure;
   const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
+  this.renderer.shadowMap.needsUpdate=true;
   this.scene=scene;this.world=root;this.design=design;
   this.update=t=>callbacks.forEach(fn=>fn(t));
   this.draw(0);

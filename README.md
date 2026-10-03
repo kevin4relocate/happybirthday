@@ -18,6 +18,12 @@ All animated atmospheric elements use seeded, periodic motion; **no camera anima
 
 These features improve the procedural rendering foundation but **do not replace hand-authored Blender models or studio HDRI lighting**. The six scene presets remain recognizable variations of a shared procedural set, not six unrelated film-quality environments.
 
+## Cinematic V2.2 — hero-object, lights and seamless environment
+
+A second visual pass now uses an **actual curved studio cyclorama** behind the stage instead of a flat rear panel with a sharp floor horizon. Each cake tier has procedurally sculpted, irregular frosting drips and piped shells. Candles use periodic warm-glow sprites, while the velvet curtains recede to frame rather than crowd the cake. Soft-glow sprites around candle flames and background practicals are rendered directly into **both** the live preview and exported WebM. The fast direct-WebGL path preserves complete scene pixels and avoids expensive multi-pass post-processing on less powerful GPUs. This is not a CSS-only enhancement.
+
+Effects are deterministic at each loop phase. The strict 10-second / 300-frame WebCodecs identical-keyframe export remains unchanged. Bloom and sculpted icing improve the existing asset-free procedural foundation, but professionally modeled cakes, calibrated material textures and HDRI lighting remain separate production milestones.
+
 ## Six procedural 3D scene families
 
 - Golden Atelier: cream-and-gold boutique birthday
