@@ -14,8 +14,8 @@ export class BirthdayScene {
   this.renderer.shadowMap.enabled=true;
   this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.camera=new THREE.PerspectiveCamera(38,16/9,.1,90);
-  this.camera.position.set(0,1.08,13.2);
-  this.camera.lookAt(0,.66,0);
+  this.camera.position.set(0,1.00,11.25);
+  this.camera.lookAt(0,.59,0);
   this.scene=null;
   this.world=null;
   this.update=()=>{};
