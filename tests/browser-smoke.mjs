@@ -8,6 +8,7 @@ import path from 'node:path';
 import http from 'node:http';
 import {fileURLToPath} from 'node:url';
 import puppeteer from 'puppeteer-core';
+import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json'};
@@ -57,23 +58,23 @@ try{
       return old.call(this,blob);
     };
   });
-  await page.evaluate(()=>{window.__BIRTHDAY_CI_EXPORT_PROFILE={width:640,height:360,fps:12,durationSeconds:2}});
+  await page.evaluate(()=>{window.__BIRTHDAY_CI_EXPORT_PROFILE={width:320,height:180,fps:30,durationSeconds:10}});
   const codecSupport=await page.evaluate(async()=>{
     const available=typeof VideoEncoder!=='undefined'&&typeof VideoFrame!=='undefined';
     if(!available)return {available:false};
     const results=[];
     for(const codec of ['vp09.00.10.08','vp8']){
-      try{const c=await VideoEncoder.isConfigSupported({codec,width:640,height:360,bitrate:8000000,framerate:12,latencyMode:'quality'});results.push({codec,supported:c.supported})}
+      try{const c=await VideoEncoder.isConfigSupported({codec,width:320,height:180,bitrate:8000000,framerate:30,latencyMode:'quality'});results.push({codec,supported:c.supported})}
       catch(e){results.push({codec,error:e.message})}
     }
     return {available,results};
   });
   console.log('WEB_CODECS_CAPABILITY '+JSON.stringify(codecSupport));
   await page.click('#download');
-  await page.waitForFunction(()=>window.__capturedVideo?.size>0,{timeout:90000});
+  await page.waitForFunction(()=>window.__capturedVideo?.size>0,{timeout:540000});
   const video=await page.evaluate(()=>window.__capturedVideo);
   console.log('RECORDED_VIDEO_DIAGNOSTICS '+JSON.stringify(video));
-  if(video.size>0&&video.size<3_000_000){
+  if(video.size>0&&video.size<12_000_000){
     const bytes=await page.evaluate(async()=>{
       const buf=await window.__capturedBlob.arrayBuffer();
       return Array.from(new Uint8Array(buf));
@@ -91,9 +92,30 @@ try{
     });
   });
   console.log('WEB_CODECS_VIDEO_METADATA '+JSON.stringify(videoMetadata));
-  assert.equal(videoMetadata.width,640,'WebCodecs must honor fixture resolution');
-  assert.equal(videoMetadata.height,360);
-  assert.ok(Math.abs(videoMetadata.duration-2)<.2,'Encoded duration mismatch: '+videoMetadata.duration);
+  assert.equal(videoMetadata.width,320,'WebCodecs must honor fixture resolution');
+  assert.equal(videoMetadata.height,180);
+  assert.ok(Math.abs(videoMetadata.duration-10)<.01,'Encoded duration mismatch: '+videoMetadata.duration);
+  const file=path.join(root,'test-output','recorded-loop.webm');
+  assert.ok(fs.existsSync(file),'Smoke test must capture a real WebM file');
+  const probe=spawnSync('ffprobe',['-v','error','-select_streams','v:0','-count_frames',
+    '-show_entries','stream=nb_read_frames,codec_name,width,height','-of','json',file],{encoding:'utf8',timeout:30000});
+  assert.equal(probe.status,0,'ffprobe failed: '+probe.stderr);
+  const stream=JSON.parse(probe.stdout).streams?.[0];
+  assert.equal(Number(stream?.nb_read_frames),300,'The output must have precisely 300 decoded frames');
+  assert.equal(Number(stream?.width),320);
+  assert.equal(Number(stream?.height),180);
+  const frames=spawnSync('ffmpeg',['-v','error','-i',file,'-vf',
+    'select=eq(n\\,0)+eq(n\\,299)','-fps_mode','passthrough','-pix_fmt','rgb24',
+    '-f','rawvideo','pipe:1'],{timeout:60000,maxBuffer:4*1024*1024});
+  assert.equal(frames.status,0,'ffmpeg failed: '+frames.stderr?.toString());
+  const frameSize=320*180*3;
+  assert.equal(frames.stdout.length,frameSize*2,'Two RGB frames must be decoded');
+  assert.deepEqual(frames.stdout.subarray(0,frameSize),frames.stdout.subarray(frameSize),
+    'Decoded first and last frames must be pixel-identical');
+  console.log('EXACT_LOOP_SEAM_PASS '+JSON.stringify({
+    decodedFrames:stream.nb_read_frames,fps:30,duration:videoMetadata.duration,
+    width:stream.width,height:stream.height,firstLastPixelDifference:0,repeatsForThreeMinuteSong:18
+  }));
   assert.deepEqual(pageErrors,[], 'Browser JavaScript errors');
   console.log('BROWSER_SMOKE_PASS '+JSON.stringify({first:initial.scene,second,width:initial.width,height:initial.height,encodedBytes:video.size,mime:video.type}));
 }finally{

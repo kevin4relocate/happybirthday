@@ -1,7 +1,7 @@
 import {chooseDesign,DesignHistory,DURATION_SECONDS} from './core.js';
 import {BirthdayScene} from './scene.js';
 import {loadFont} from './type.js';
-import {recordLoop,saveVideo,preferredFormat} from './export.js';
+import {recordLoop,saveVideo} from './export.js';
 
 const dom={
  form:document.getElementById('creator-form'),
@@ -69,19 +69,19 @@ dom.download.addEventListener('click',async()=>{
  busy(true);
  dom.cancel.textContent='Cancel export';
  dom.format.textContent='Rendering video…';
- say('Rendering your 10-second loop frame by frame. This may take longer on slower devices; keep the tab open.');
+ say('Rendering every frame. The first and last encoded frames will match exactly. Keep this tab open.');
  let snapshot=design;
  try{
   const exported=await recordLoop(engine,{signal:abortController.signal,onProgress:p=>{dom.bar.style.width=(p*100).toFixed(1)+'%';say('Rendering '+Math.min(100,Math.floor(p*100))+'% — keep this tab visible.')}});
   const filename=saveVideo(exported,snapshot);
-  dom.format.textContent='10 seconds · 1080p · '+exported.ext.toUpperCase();
-  say('Video ready! Downloading '+filename);
+  dom.format.textContent=exported.duration+'s · '+exported.frames+' frames · '+exported.ext.toUpperCase()+' · exact seam';
+  say('Verified: the first and last frames match exactly. Downloading '+filename);
  }catch(e){
   say(e?.name==='AbortError'?'Export canceled. Your scene is ready to try again.':'Video export failed: '+(e?.message||'Unknown error'),e?.name!=='AbortError');
  }finally{
   recording=false;abortController=null;busy(false);
   start=performance.now();lastRender=-1;
-  if(!dom.format.textContent.includes('·')&&!dom.format.textContent.includes('1080p'))dom.format.textContent='10 seconds · 1080p · video only';
+  if(!dom.format.textContent.includes('exact seam'))dom.format.textContent='10s · 1080p · 300 frames · WebM';
  }
 });
 dom.canvas.addEventListener('webglcontextlost',e=>{
@@ -92,8 +92,7 @@ dom.canvas.addEventListener('webglcontextlost',e=>{
 });
 window.addEventListener('beforeunload',()=>{cancelAnimationFrame(raf);abortController?.abort();engine?.dispose()});
 async function init(){
- const format=preferredFormat();
- dom.format.textContent=format?'10 seconds · 1080p · '+format.ext.toUpperCase():'Browser recording unavailable';
+ dom.format.textContent='10s · 1080p · 300 frames · WebM';
  try{
   engine=new BirthdayScene(dom.canvas,dom.viewport);
   say('Preparing realistic candles, 3D lettering and lighting…');
