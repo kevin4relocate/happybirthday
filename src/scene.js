@@ -19,6 +19,9 @@ export class BirthdayScene {
   this.renderer.toneMappingExposure=1.25;
   this.renderer.shadowMap.enabled=true;
   this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  // Lighting/camera are static during a loop. Cache the costly shadow atlas
+  // instead of rebuilding a 2048² map on every recorded frame.
+  this.renderer.shadowMap.autoUpdate=false;
   this.camera=new THREE.PerspectiveCamera(38,16/9,.1,90);
   // Bloom is part of the rendered canvas, not a CSS preview effect.
   // Therefore WebCodecs records exactly the same post-processed scene.
@@ -128,6 +131,7 @@ export class BirthdayScene {
   const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
   this.scene=scene;this.world=root;this.design=design;
   this.renderPass.scene=scene;
+  this.renderer.shadowMap.needsUpdate=true;
   this.bloomPass.uniforms.glowStrength.value=design.scene==='disco'?.17:design.scene==='moonlit'?.15:.12;
   this.update=t=>callbacks.forEach(fn=>fn(t));
   this.draw(0);
