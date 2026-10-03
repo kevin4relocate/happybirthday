@@ -439,8 +439,8 @@ export function makeBackdrop(root,theme,design){
   const fixture=sphere(.19,metalMat,20,14);
   fixture.position.y=2.79;base.add(fixture);
   const crystal=sphere(.13,new THREE.MeshPhysicalMaterial({
-   color:theme.palette[1],roughness:.06,metalness:.15,
-   transmission:.35,thickness:.4,transparent:true,opacity:.85
+   color:theme.palette[1],roughness:.11,metalness:.3,
+   clearcoat:1,clearcoatRoughness:.09,transparent:true,opacity:.84
   }),24,16);
   crystal.position.set(0,2.60,.07);base.add(crystal);
   root.add(base);
