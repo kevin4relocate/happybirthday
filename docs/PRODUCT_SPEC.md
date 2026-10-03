@@ -1,37 +1,14 @@
-# Birthday Studio V2 — manager's release checklist
+# Product checklist — single-flagship reset
 
-## User contract
+- [x] Delete the previous six-scene procedural design system from main
+- [x] Keep only the proven frame-accurate 10-second encoding modules
+- [x] Import a real, locally hosted, licensed birthday photo with provenance
+- [x] Build a deliberate 16:9 photographic set with gold-on-dark integrated type
+- [x] Use one fixed camera and genuinely periodic soft motion
+- [x] Keep two fields, Generate, Preview, Download and Cancel
+- [x] Node.js logic tests and GitHub Actions browser checks
+- [ ] Evaluate the art direction with the user using screenshot before accepting more premium templates
+- [ ] Validate export at 1920×1080 on actual target GPUs
+- [ ] Build one genuinely authored Blender/Cycles 3D luxury birthday room, if the photo-motion approach is still insufficient
 
-Only two inputs (song title and artist), **Generate**, autoplay 3D preview, **Download loop**, and an export Cancel affordance. No scene/font/effect settings exposed. The target audience is creators assembling up to 1,000 videos with an external music editor.
-
-## Implemented (static-source implementation)
-
-- [x] Dedicated new repository independent of AnimeLoopMaker.
-- [x] Consistent one-click 16:9 interface with preview at the top on mobile.
-- [x] Six distinct procedural 3D theme families, seeded visual variations and scene-matched colors.
-- [x] Candle flames, balloons and decorative particles with periodic deterministic movement.
-- [x] Two-line headline splitting, text as an object in the world and pedestal artist badge.
-- [x] Browser-local history keeping 3,000 structural fingerprints; seed alone does not count as difference.
-- [x] Frame-by-frame, timestamped WebCodecs export with a byte-identical first/last compressed keyframe; progress, cancellation and cleanup. No unreliable realtime fallback.
-- [x] Pure Node.js tests and CI workflow.
-- [x] V2.1 scene-matched cinematic light rig, fixed-camera compositions, layered curtain/bokeh atmosphere, improved materials and foil-faced 3D lettering.
-- [x] V2.2 curved studio cyclorama, sculpted piped/dripping icing, candle halos, seeded candle and background light-halation sprites baked into encoded canvas, with cached static studio shadow maps. Scene animations stay periodic.
-
-## Release blockers for a truly cinematic / large-scale product
-
-- [ ] Hand-authored premium Blender/GLB scene library and asset licensing checks.
-- [ ] Browser screenshots and visual QA across Chrome, Edge and Safari on representative GPUs.
-- [ ] Actual 1080p recording validation on real user hardware; CI covers 10-second, 30-fps reduced-resolution file decoding and first/last pixel equality.
-- [ ] Content visual similarity checks: fingerprint uniqueness alone cannot ensure 1,000 visually different videos.
-- [ ] Visual legibility tests for extremely long/multilingual song titles.
-- [ ] Optional background batch export with an offline/worker or server-side video encoder to handle hundreds of videos reliably.
-- [ ] Optional hosted assets and vendored Three.js dependencies to remove public-CDN runtime reliance.
-- [ ] GPU memory profiling and performance monitoring for weak mobile devices.
-
-## Acceptance criteria for the next milestone
-
-1. Ten curated 3D hero scenes with good screenshots judged at full 1920×1080.
-2. Three consecutive scene generations should look different without requiring settings changes.
-3. Test 100 actual browser exports across a selection of devices; no zero-byte outputs or hanging recorders.
-4. Verify the last frame / first frame visual transition and encoded timing, not just mathematical animation phase.
-5. Review 1,000 generated thumbnails for composition and content diversity before claiming scale readiness.
+This is one scene, not an infinite distinct-scene generator. Do not add random prop combinations before the flagship is visually accepted.
