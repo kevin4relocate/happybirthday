@@ -78,20 +78,21 @@ export class BirthdayScene {
   this.update(this.lastPhase);
   this.renderer.render(this.scene,this.camera);
  }
- setExportMode(enabled){
+ setExportMode(enabled,options={}){
   this.exporting=enabled;
   if(enabled){
     const gl=this.renderer.getContext();
     const max=gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
-    if(max<EXPORT_WIDTH||max<EXPORT_HEIGHT)throw new Error('This device cannot render 1080p. Try desktop Chrome or Edge.');
+    const targetW=options.width||EXPORT_WIDTH,targetH=options.height||EXPORT_HEIGHT;
+    if(max<targetW||max<targetH)throw new Error('This device cannot render '+targetW+' × '+targetH+'. Try desktop Chrome or Edge.');
     this.renderer.setPixelRatio(1);
-    this.renderer.setSize(EXPORT_WIDTH,EXPORT_HEIGHT,false);
+    this.renderer.setSize(targetW,targetH,false);
   }else{
     this.renderer.setPixelRatio(this.previewScale);
     this.renderer.setSize(Math.max(250,Math.floor(this.viewport.clientWidth||800)),
       Math.max(140,Math.floor((this.viewport.clientWidth||800)*9/16)),false);
   }
-  this.camera.aspect=16/9;this.camera.updateProjectionMatrix();
+  this.camera.aspect=enabled?(options.width||EXPORT_WIDTH)/(options.height||EXPORT_HEIGHT):16/9;this.camera.updateProjectionMatrix();
   this.draw(0);
  }
  clearWorld(){
