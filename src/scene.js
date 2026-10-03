@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {SCENES,EXPORT_WIDTH,EXPORT_HEIGHT,DURATION_SECONDS} from './core.js';
 import {makeBackdrop,makeStage,makeCake,makeBalloons,makeGifts,makeSceneDecor} from './objects.js';
 import {createLettering} from './type.js';
@@ -16,6 +20,15 @@ export class BirthdayScene {
   this.renderer.shadowMap.enabled=true;
   this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.camera=new THREE.PerspectiveCamera(38,16/9,.1,90);
+  // Bloom is part of the rendered canvas, not a CSS preview effect.
+  // Therefore WebCodecs records exactly the same post-processed scene.
+  this.composer=new EffectComposer(this.renderer);
+  this.renderPass=new RenderPass(new THREE.Scene(),this.camera);
+  this.bloomPass=new UnrealBloomPass(new THREE.Vector2(800,450),.23,.30,.90);
+  this.outputPass=new OutputPass();
+  this.composer.addPass(this.renderPass);
+  this.composer.addPass(this.bloomPass);
+  this.composer.addPass(this.outputPass);
   this.camera.position.set(0,1.00,11.25);
   this.camera.lookAt(0,.59,0);
   this.scene=null;
@@ -32,6 +45,8 @@ export class BirthdayScene {
   const h=Math.max(140,Math.floor(w*9/16));
   this.renderer.setPixelRatio(this.previewScale);
   this.renderer.setSize(w,h,false);
+  this.composer.setPixelRatio(this.previewScale);
+  this.composer.setSize(w,h);
   this.camera.aspect=16/9;this.camera.updateProjectionMatrix();
   this.draw(this.lastPhase??0);
  }
@@ -79,6 +94,9 @@ export class BirthdayScene {
   this.renderer.toneMappingExposure=lighting.exposure;
   const callbacks=[cakeUpdate,balloonsUpdate,decorationsUpdate,letteringUpdate,atmosphereUpdate];
   this.scene=scene;this.world=root;this.design=design;
+  this.renderPass.scene=scene;
+  this.bloomPass.strength=design.scene==='disco'?.32:design.scene==='moonlit'?.28:.22;
+  this.bloomPass.threshold=design.scene==='disco'?.84:.93;
   this.update=t=>callbacks.forEach(fn=>fn(t));
   this.draw(0);
  }
@@ -86,7 +104,7 @@ export class BirthdayScene {
   if(!this.scene)return;
   this.lastPhase=(phase%1+1)%1;
   this.update(this.lastPhase);
-  this.renderer.render(this.scene,this.camera);
+  this.composer.render();
  }
  setExportMode(enabled,options={}){
   this.exporting=enabled;
@@ -97,10 +115,15 @@ export class BirthdayScene {
     if(max<targetW||max<targetH)throw new Error('This device cannot render '+targetW+' × '+targetH+'. Try desktop Chrome or Edge.');
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(targetW,targetH,false);
+    this.composer.setPixelRatio(1);
+    this.composer.setSize(targetW,targetH);
   }else{
     this.renderer.setPixelRatio(this.previewScale);
-    this.renderer.setSize(Math.max(250,Math.floor(this.viewport.clientWidth||800)),
-      Math.max(140,Math.floor((this.viewport.clientWidth||800)*9/16)),false);
+    const width=Math.max(250,Math.floor(this.viewport.clientWidth||800));
+    const height=Math.max(140,Math.floor((this.viewport.clientWidth||800)*9/16));
+    this.renderer.setSize(width,height,false);
+    this.composer.setPixelRatio(this.previewScale);
+    this.composer.setSize(width,height);
   }
   this.camera.aspect=enabled?(options.width||EXPORT_WIDTH)/(options.height||EXPORT_HEIGHT):16/9;this.camera.updateProjectionMatrix();
   this.draw(0);
@@ -123,6 +146,7 @@ export class BirthdayScene {
  dispose(){
   this.resizeObserver?.disconnect();
   this.clearWorld();
+  this.composer.dispose();
   this.renderer.dispose();
  }
 }
