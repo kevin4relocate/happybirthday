@@ -75,7 +75,7 @@ async function pickEncoder(profile){
  const codecs=['vp09.00.10.08','vp8'];
  for(const codec of codecs){
   const config={codec,width:profile.width,height:profile.height,bitrate:8_000_000,
-    framerate:profile.fps,latencyMode:'quality',hardwareAcceleration:'prefer-hardware'};
+    framerate:profile.fps,latencyMode:'quality'};
   try{const result=await VideoEncoder.isConfigSupported(config);if(result.supported)return {codec,config:result.config||config}}
   catch(_){}
  }
