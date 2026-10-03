@@ -12,7 +12,7 @@ Only two inputs (song title and artist), **Generate**, autoplay 3D preview, **Do
 - [x] Candle flames, balloons and decorative particles with periodic deterministic movement.
 - [x] Two-line headline splitting, text as an object in the world and pedestal artist badge.
 - [x] Browser-local history keeping 3,000 structural fingerprints; seed alone does not count as difference.
-- [x] Real-time 10-second silent recording, MIME selection, progress, cancellation and cleanup.
+- [x] Frame-by-frame, timestamped WebCodecs recording (when available), with real-time MediaRecorder fallback, progress, cancellation and cleanup.
 - [x] Pure Node.js tests and CI workflow.
 
 ## Release blockers for a truly cinematic / large-scale product
