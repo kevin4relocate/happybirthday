@@ -50,14 +50,14 @@ export class BirthdayScene {
   const letteringUpdate=createLettering(root,design,theme,font);
   const ambient=new THREE.HemisphereLight(0xffe9d1,0x455075,1.65);scene.add(ambient);
   const key=new THREE.DirectionalLight(0xffe9cb,4.2);
-  key.position.set(-3,7,6);key.castShadow=true;
+  key.position.set(-3+(design.lightVariation%3)*.45,7,6);key.intensity=3.75+design.lightVariation*.12;key.castShadow=true;
   key.shadow.mapSize.set(2048,2048);
   key.shadow.camera.left=-8;key.shadow.camera.right=8;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;
   key.shadow.camera.near=.1;key.shadow.camera.far=25;key.shadow.bias=-.00009;
   key.shadow.normalBias=.02;key.shadow.radius=4;
   scene.add(key);
   const rim=new THREE.DirectionalLight(theme.palette[1],3);
-  rim.position.set(5,5,-4);scene.add(rim);
+  rim.position.set(5-(design.lightVariation%4)*.22,5,-4);scene.add(rim);
   const soft=new THREE.PointLight(theme.palette[2],11,14,2);
   soft.position.set(2.2,2.0,5);scene.add(soft);
   if(design.scene==='disco'){
