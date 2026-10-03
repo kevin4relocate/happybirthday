@@ -69,10 +69,10 @@ dom.download.addEventListener('click',async()=>{
  busy(true);
  dom.cancel.textContent='Cancel export';
  dom.format.textContent='Rendering video…';
- say('Recording your seamless loop. Keep this tab open for about 10 seconds.');
+ say('Rendering your 10-second loop frame by frame. This may take longer on slower devices; keep the tab open.');
  let snapshot=design;
  try{
-  const exported=await recordLoop(engine,{signal:abortController.signal,onProgress:p=>{dom.bar.style.width=(p*100).toFixed(1)+'%';say('Recording '+Math.min(100,Math.floor(p*100))+'% — keep this tab visible.')}});
+  const exported=await recordLoop(engine,{signal:abortController.signal,onProgress:p=>{dom.bar.style.width=(p*100).toFixed(1)+'%';say('Rendering '+Math.min(100,Math.floor(p*100))+'% — keep this tab visible.')}});
   const filename=saveVideo(exported,snapshot);
   dom.format.textContent='10 seconds · 1080p · '+exported.ext.toUpperCase();
   say('Video ready! Downloading '+filename);
